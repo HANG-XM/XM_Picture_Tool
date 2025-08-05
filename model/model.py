@@ -60,7 +60,7 @@ def find_template_on_screen(template_path, window ,threshold:float=0.5):
         logging.error(f"查找模板图像时出错: {e}")# 打印错误信息
         return None# 返回None
 
-def click_on_template(template_path, window ,position=None):
+def click_on_template(template_path, window ,position=None)->bool:
     """
     点击模板
     :param position:
@@ -79,8 +79,10 @@ def click_on_template(template_path, window ,position=None):
         screen_y = window.top + y
         pyautogui.click(screen_x, screen_y)# 点击
         # logging.info(f"在位置 ({screen_x}, {screen_y}) 点击")
+        return True
     else:
         logging.info("未找到要点击的模板")
+        return False
 
 def preprocess_image(image):
     """

@@ -49,21 +49,26 @@ if __name__ == "__main__":
                     logging.info("点击可抢")
                     click_on_template(r"F:\Work\Know_Pic\click\Rob.png", game_window,position)
                     time.sleep(2)  # 等待可抢完全加载
-                    while True:
+                    continue_click = True
+                    while continue_click:
                         # 循环单个玩家的礼物
                         position = find_template_on_screen(r"F:\Work\Know_Pic\click\Treasure_chest.png",
-                                                           game_window, 0.1)
+                                                           game_window, 0.5)
+                        time.sleep(1)
                         if not position is None:
                             # 点击礼物
                             time.sleep(2)  # 等待礼物完全加载
                             logging.info("点击礼物")
                             click_on_template(r"F:\Work\Know_Pic\click\Treasure_chest.png", game_window, position)
                             # 点击确认
-                            time.sleep(2)  # 等待确认完全加载
+                            time.sleep(1)  # 等待确认完全加载
                             logging.info("点击确认")
-                            click_on_template(r"F:\Work\Know_Pic\click\Confirm.png", game_window)
+                            if click_on_template(r"F:\Work\Know_Pic\click\Confirm.png", game_window):
+                                continue_click = False
+                                logging.info("今日礼物已经抢完！")
                         else:
-                            break
+                            continue_click = False
+                            logging.info("未找到可抢的礼物，开始返回主界面！")
                     # 点击返回
                     time.sleep(1)  # 等待返回完全加载
                     logging.info("点击返回")
