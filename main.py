@@ -11,9 +11,12 @@ import logging
 import keyboard
 
 running = True
+continue_click = True
 def stop_recognition():
     global running
+    global continue_click
     running = False
+    continue_click = False
     print("识图程序已中止")
 
 keyboard.add_hotkey('p', stop_recognition)
@@ -46,7 +49,6 @@ if __name__ == "__main__":
                     logging.info("点击可抢")
                     click_on_template(r"F:\Work\Know_Pic\click\Rob.png", game_window,position)
                     time.sleep(1.8)  # 等待可抢完全加载
-                    continue_click = True
                     while continue_click:
                         # 循环单个玩家的礼物
                         position = find_template_on_screen(r"F:\Work\Know_Pic\click\Treasure_chest.png",
@@ -61,6 +63,7 @@ if __name__ == "__main__":
                             logging.info("点击确认")
                             if not click_on_template(r"F:\Work\Know_Pic\click\Confirm.png", game_window):
                                 continue_click = False
+                                running=False
                                 logging.info("今日礼物已经抢完！")
                         else:
                             continue_click = False
