@@ -17,7 +17,6 @@ def stop_recognition():
     print("识图程序已中止")
 
 keyboard.add_hotkey('p', stop_recognition)
-
 # 初始化日志记录
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -50,31 +49,34 @@ if __name__ == "__main__":
                     logging.info("点击可抢")
                     click_on_template(r"F:\Work\Know_Pic\click\Rob.png", game_window,position)
                     time.sleep(2)  # 等待可抢完全加载
-                    position = find_template_on_screen(r"F:\Work\Know_Pic\click\Treasure_chest.png",
-                                                       game_window,0.1)
-                    if not position is None:
-                        # 点击礼物
-                        time.sleep(2)  # 等待礼物完全加载
-                        logging.info("点击礼物")
-                        click_on_template(r"F:\Work\Know_Pic\click\Treasure_chest.png", game_window,position)
-                        # 点击确认
-                        time.sleep(2)  # 等待确认完全加载
-                        logging.info("点击确认")
-                        click_on_template(r"F:\Work\Know_Pic\click\Confirm.png", game_window)
-                        # 点击返回
-                        time.sleep(1)  # 等待返回完全加载
-                        logging.info("点击返回")
-                        click_on_template(r"F:\Work\Know_Pic\click\Return.png", game_window)
-                        # 返回主界面
-                        time.sleep(1)  # 等待返回完全加载
-                        logging.info("返回主界面")
-                        click_on_template(r"F:\Work\Know_Pic\click\Return_Main.png", game_window)
-                    else:
-                        logging.info("礼物未找到，开始返回主界面！")
-                        time.sleep(1)
-                        click_on_template(r"F:\Work\Know_Pic\click\Return.png", game_window)
-                        time.sleep(1)
-                        click_on_template(r"F:\Work\Know_Pic\click\Return_Main.png", game_window)
+                    while True:
+                        # 循环单个玩家的礼物
+                        position = find_template_on_screen(r"F:\Work\Know_Pic\click\Treasure_chest.png",
+                                                           game_window, 0.1)
+                        if not position is None:
+                            # 点击礼物
+                            time.sleep(2)  # 等待礼物完全加载
+                            logging.info("点击礼物")
+                            click_on_template(r"F:\Work\Know_Pic\click\Treasure_chest.png", game_window, position)
+                            # 点击确认
+                            time.sleep(2)  # 等待确认完全加载
+                            logging.info("点击确认")
+                            click_on_template(r"F:\Work\Know_Pic\click\Confirm.png", game_window)
+                            # 点击返回
+                            time.sleep(1)  # 等待返回完全加载
+                            logging.info("点击返回")
+                            click_on_template(r"F:\Work\Know_Pic\click\Return.png", game_window)
+                            # 返回主界面
+                            time.sleep(1)  # 等待返回完全加载
+                            logging.info("返回主界面")
+                            click_on_template(r"F:\Work\Know_Pic\click\Return_Main.png", game_window)
+                        else:
+                            logging.info("礼物未找到，开始返回主界面！")
+                            time.sleep(1)
+                            click_on_template(r"F:\Work\Know_Pic\click\Return.png", game_window)
+                            time.sleep(1)
+                            click_on_template(r"F:\Work\Know_Pic\click\Return_Main.png", game_window)
+                            break
                 else:
                     time.sleep(1)
                     logging.info("礼物大厅未找到可抢按钮，开始返回主界面！")

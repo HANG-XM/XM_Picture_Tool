@@ -11,8 +11,13 @@ def initial():
     """
     # 获取当前运行目录
     current_directory = os.getcwd()
-    # 构建子目录的完整路径
+    # 构建缓存子目录的完整路径
     subdirectory_path = os.path.join(current_directory, "Cache")
+    # 检查子目录是否存在，如果不存在则创建
+    if not os.path.exists(subdirectory_path):
+        os.makedirs(subdirectory_path)
+    # 构建图标子目录的完整路径
+    subdirectory_path = os.path.join(current_directory, "click")
     # 检查子目录是否存在，如果不存在则创建
     if not os.path.exists(subdirectory_path):
         os.makedirs(subdirectory_path)
