@@ -62,21 +62,16 @@ if __name__ == "__main__":
                             time.sleep(2)  # 等待确认完全加载
                             logging.info("点击确认")
                             click_on_template(r"F:\Work\Know_Pic\click\Confirm.png", game_window)
-                            # 点击返回
-                            time.sleep(1)  # 等待返回完全加载
-                            logging.info("点击返回")
-                            click_on_template(r"F:\Work\Know_Pic\click\Return.png", game_window)
-                            # 返回主界面
-                            time.sleep(1)  # 等待返回完全加载
-                            logging.info("返回主界面")
-                            click_on_template(r"F:\Work\Know_Pic\click\Return_Main.png", game_window)
                         else:
-                            logging.info("礼物未找到，开始返回主界面！")
-                            time.sleep(1)
-                            click_on_template(r"F:\Work\Know_Pic\click\Return.png", game_window)
-                            time.sleep(1)
-                            click_on_template(r"F:\Work\Know_Pic\click\Return_Main.png", game_window)
                             break
+                    # 点击返回
+                    time.sleep(1)  # 等待返回完全加载
+                    logging.info("点击返回")
+                    click_on_template(r"F:\Work\Know_Pic\click\Return.png", game_window)
+                    # 返回主界面
+                    time.sleep(1)  # 等待返回完全加载
+                    logging.info("返回主界面")
+                    click_on_template(r"F:\Work\Know_Pic\click\Return_Main.png", game_window)
                 else:
                     time.sleep(1)
                     logging.info("礼物大厅未找到可抢按钮，开始返回主界面！")
