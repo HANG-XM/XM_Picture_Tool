@@ -264,19 +264,28 @@ def increment_metric(metric_type: str,account:str) -> bool:
         if metric_type not in ["player_count", "gift_count"]:
             raise ValueError(f"无效的指标类型：{metric_type}（仅支持'player_count'或'gift_count'）")
 
-        # 提取当前账户的指标字典
+        # ------------------------------ 提取账户指标并校验类型 ------------------------------
         account_metrics = log_data[account]
+        if not isinstance(account_metrics, dict):
+            raise TypeError(f"账户 '{account}' 的指标数据格式错误（需为字典类型）")
         if metric_type not in account_metrics:
             raise ValueError(f"账户 '{account}' 缺少指标 '{metric_type}'（数据格式错误）")
-        # 执行+1操作
-        log_data[metric_type] += 1
+
+        current_value = account_metrics[metric_type]
+        if not isinstance(current_value, int):
+            raise TypeError(
+                f"账户 '{account}' 的 {metric_type} 类型错误（需为整数，当前类型：{type(current_value).__name__}）")
+        # ------------------------------ 执行指标增量操作 ------------------------------
+        new_value = current_value + 1
+        account_metrics[metric_type] = new_value  # 显式赋值（提高可读性）
 
         # ------------------------------ 写回更新后的数据 ------------------------------
         with open(log_file_path, "w", encoding="utf-8") as f:
             json.dump(log_data, f, ensure_ascii=False, indent=4)
 
-        # 成功提示（明确账户和指标）
-        print(f"成功！账户 [{account}] 的 {metric_type} 数量已更新为：{account_metrics[metric_type]}")
+        # 成功提示（明确账户、指标和新值）
+        print(f"成功！账户 [{account}] 的 {metric_type} 数量已更新为：{new_value}")
+        return True
 
     except FileNotFoundError:
         print(f"错误：日志文件 [{log_file_path}] 未找到（请先初始化日志文件）")
@@ -284,7 +293,10 @@ def increment_metric(metric_type: str,account:str) -> bool:
         print(f"错误：日志文件 [{log_file_path}] 格式异常（非合法JSON）")
     except ValueError as ve:
         print(f"操作失败：{ve}")
+    except TypeError as te:
+        print(f"类型错误：{te}")
     except PermissionError:
         print(f"错误：无权限访问日志文件 [{log_file_path}]，请检查文件读写权限")
     except Exception as e:
         print(f"未知错误：{str(e)}")
+    return False
