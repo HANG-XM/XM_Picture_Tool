@@ -137,7 +137,7 @@ if __name__ == "__main__":
     except gw.PyGetWindowException as e:
         if '操作成功完成' in str(e):  # 匹配中文错误信息
             pass  # 忽略此异常（实际已成功）
-    else:
-        raise  # 其他异常正常抛出
+        else:
+            raise  # 其他异常正常抛出
 
     sample_pic(account)
