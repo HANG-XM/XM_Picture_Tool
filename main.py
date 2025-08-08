@@ -1,4 +1,4 @@
-from model.model import initial, find_template_on_screen, click_on_template
+from model.model import initial, find_template_on_screen, click_on_template,increment_metric
 import time
 import logging
 import keyboard
@@ -13,7 +13,7 @@ def stop_recognition():
     continue_click = False
     logging.info("识图程序已中止")
 
-def sample_pic():
+def sample_pic(account:str):
     global running, continue_click
     try:
         while running:
@@ -38,6 +38,7 @@ def sample_pic():
                 logging.info("点击可抢")
                 click_on_template(r"F:\Work\Know_Pic\click\Rob.png", game_window, position)
                 time.sleep(1.6)  # 等待可抢完全加载
+                increment_metric("玩家数",account)
                 while continue_click:
                     # 循环单个玩家的礼物
                     position = find_template_on_screen(r"F:\Work\Know_Pic\click\Treasure_chest.png",
@@ -45,13 +46,15 @@ def sample_pic():
                     if not position is None:
                         # 点击礼物
                         logging.info("点击礼物")
-                        click_on_template(r"F:\Work\Know_Pic\click\Treasure_chest.png", game_window, position)
+                        click_on_template(r"F:\Work\Know_Pic\click\Treasure_chest.png", game_window,
+                                          position)
                         # 点击确认
                         time.sleep(1.2)  # 等待确认完全加载
                         logging.info("点击确认")
                         if not click_on_template(r"F:\Work\Know_Pic\click\Confirm.png", game_window):
                             logging.info("今日礼物已经抢完！")
                             return 0
+                        increment_metric("礼物数",account)
                         time.sleep(0.8)
                     else:
                         continue_click = False
@@ -121,18 +124,17 @@ def complex_pic(threshold,title):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
+    account = input("请输入当前游戏账号")
     # 初始化目录
-    initial()
+    initial(account)
     # 绑定热键
     keyboard.add_hotkey('p', stop_recognition)
 
     running = True
     continue_click = True
-
     # 获取游戏窗口
     game_window_title = "BlueStacks 5"  # 请将此替换为你的游戏窗口的实际标题
     game_window = gw.getWindowsWithTitle(game_window_title)[0]
     game_window.activate()  # 激活游戏窗口
 
-    sample_pic()
+    sample_pic(account)

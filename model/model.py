@@ -1,32 +1,87 @@
 import pyautogui
 import cv2
 import numpy as np
-import pygetwindow as gw  # 用于窗口操作，需安装：pip install pygetwindow
 import os
 import logging
 import time
-import random
 from typing import List, Tuple, Optional
+import datetime
+import json
 
-def initial():
+def initial(account:str) -> bool:
     """
     初始化函数（优化版）：高效创建缓存、图标、日志目录
+    :param account:account (str): 统计账户名（非空字符串）
+    :return:bool: 初始化是否成功（True=成功，False=失败）
     """
-    # 仅获取一次当前工作目录
-    current_dir = os.getcwd()
+    # ------------------------------ 参数校验 ------------------------------
+    if not isinstance(account, str) or len(account.strip()) == 0:
+        print("错误：账户名必须为非空字符串")
+        return False
+    # ------------------------------ 基础路径预计算 ------------------------------
+    current_dir = os.getcwd()   # 仅获取一次当前工作目录
+    dirs_to_create = ["Cache", "click", "log"]  # 目录列表保持简洁
+    log_dir = os.path.join(current_dir, "log")  # 提前计算日志目录路径（避免后续重复拼接）
 
-    # 定义需要创建的目录列表（可扩展）
-    dirs_to_create = ["Cache", "click", "log"]
-
-    # 批量创建目录（自动跳过已存在的目录）
+    # ------------------------------ 高效目录创建 ------------------------------
     for dir_name in dirs_to_create:
         dir_path = os.path.join(current_dir, dir_name)
         try:
-            # exist_ok=True：目录存在时不报错（Python 3.2+ 支持）
-            os.makedirs(dir_path, exist_ok=True)
-            print(f"目录已创建/已存在: {dir_path}")
+            os.makedirs(dir_path, exist_ok=True)    # 原子操作：存在则跳过，不存在则创建
+            print(f"目录就绪: {dir_path}")
+        except PermissionError:
+            print(f"错误：无权限创建目录 {dir_path}，请检查用户权限")
+            return False
         except OSError as e:
             print(f"创建目录失败 {dir_path}: {e}")
+            return False
+    # ------------------------------ 日志文件初始化/更新 ------------------------------
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前日期（YYYY-MM-DD）
+    log_filepath = os.path.join(log_dir, f"{current_date}_log.json" )  # 日志文件绝对路径
+    try:
+        # ------------------------------ 读取或初始化日志数据 ------------------------------
+        file_exists = os.path.isfile(log_filepath)  # 标记文件是否存在
+        log_data = {}
+        if file_exists:
+            # 读取现有数据并验证格式
+            with open(log_filepath, "r", encoding="utf-8") as f:
+                log_data = json.load(f)
+            # 基础格式校验（根节点必须为字典）
+            if not isinstance(log_data, dict):
+                raise ValueError("日志文件根节点必须为字典类型（现有数据格式错误）")
+        else:
+            # 新文件初始化空字典
+            log_data = {}
+
+        # ------------------------------ 添加/更新当前账户数据 ------------------------------
+        # 检查账户是否已存在
+        if account in log_data:
+            print(f"提示：账户 '{account}' 已存在，保留原有数据")
+        else:
+            # 新账户添加初始数据（不覆盖已有账户）
+            log_data[account] = {"player_count": 0, "gift_count": 0}
+            print(f"成功：账户 '{account}' 初始化完成（首次添加）")
+
+        # ------------------------------ 写回更新后的数据 ------------------------------
+        with open(log_filepath, "w", encoding="utf-8") as f:
+            json.dump(log_data, f, ensure_ascii=False, indent=4)
+        print(f"日志文件更新成功: {log_filepath}（当前包含账户数：{len(log_data)}）")
+    except PermissionError:
+        print(f"错误：无权限访问日志文件 {log_filepath}（请检查文件读写权限）")
+        return False
+    except json.JSONDecodeError:
+        print(f"错误：日志文件 {log_filepath} 格式异常（非合法JSON），请手动修复")
+        return False
+    except IsADirectoryError:
+        print(f"错误：{log_filepath} 是目录而非文件（请清理冲突文件）")
+        return False
+    except ValueError as ve:
+        print(f"日志文件格式验证失败: {ve}")
+        return False
+    except Exception as e:
+        print(f"日志文件初始化/更新失败: {str(e)}（未知异常）")
+        return False
+    return True
 
 def find_template_on_screen(template_path, window ,threshold:float=0.5,multi_match:bool=False):
     """
@@ -180,3 +235,56 @@ def __text():
     cv2.imshow("ROI", cv2.cvtColor(np.array(screenshot_roi), cv2.COLOR_RGB2BGR))
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+def increment_metric(metric_type: str,account:str) -> bool:
+    """
+    增加指定账户的指定指标数量（支持"player_count"或"gift_count"）
+    :param metric_type:要增加的指标类型（"player_count"/"gift_count"）
+    :param account:要操作的账户名（非空字符串）
+    日志文件路径规则：当前运行目录/log/{YYYY-MM-DD}_log.json
+    """
+    global log_file_path
+    try:
+        # ------------------------------ 自动生成日志文件路径 ------------------------------
+        current_dir = os.getcwd()  # 获取当前工作目录
+        log_dir = os.path.join(current_dir, "log")  # 日志目录路径
+        current_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前日期（YYYY-MM-DD）
+        log_file_path = os.path.join(log_dir, f"{current_date}_log.json")  # 完整日志文件路径
+
+        # ------------------------------ 读取日志数据 ------------------------------
+        # 读取现有数据
+        with open(log_file_path, "r", encoding="utf-8") as f:
+            log_data = json.load(f)
+
+        # ------------------------------ 验证账户存在性 ------------------------------
+        if account not in log_data:
+            raise ValueError(f"账户 '{account}' 不存在（请先通过initial函数初始化该账户）")
+
+        # 验证指标类型有效性
+        if metric_type not in ["player_count", "gift_count"]:
+            raise ValueError(f"无效的指标类型：{metric_type}（仅支持'player_count'或'gift_count'）")
+
+        # 提取当前账户的指标字典
+        account_metrics = log_data[account]
+        if metric_type not in account_metrics:
+            raise ValueError(f"账户 '{account}' 缺少指标 '{metric_type}'（数据格式错误）")
+        # 执行+1操作
+        log_data[metric_type] += 1
+
+        # ------------------------------ 写回更新后的数据 ------------------------------
+        with open(log_file_path, "w", encoding="utf-8") as f:
+            json.dump(log_data, f, ensure_ascii=False, indent=4)
+
+        # 成功提示（明确账户和指标）
+        print(f"成功！账户 [{account}] 的 {metric_type} 数量已更新为：{account_metrics[metric_type]}")
+
+    except FileNotFoundError:
+        print(f"错误：日志文件 [{log_file_path}] 未找到（请先初始化日志文件）")
+    except json.JSONDecodeError:
+        print(f"错误：日志文件 [{log_file_path}] 格式异常（非合法JSON）")
+    except ValueError as ve:
+        print(f"操作失败：{ve}")
+    except PermissionError:
+        print(f"错误：无权限访问日志文件 [{log_file_path}]，请检查文件读写权限")
+    except Exception as e:
+        print(f"未知错误：{str(e)}")
