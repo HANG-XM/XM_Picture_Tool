@@ -59,7 +59,7 @@ def initial(account:str) -> bool:
             print(f"提示：账户 '{account}' 已存在，保留原有数据")
         else:
             # 新账户添加初始数据（不覆盖已有账户）
-            log_data[account] = {"player_count": 0, "gift_count": 0}
+            log_data[account] = {"player_count": 0, "gift_count": 0,"created_at": datetime.datetime.now().strftime("%Y-%m-%d")}
             print(f"成功：账户 '{account}' 初始化完成（首次添加）")
 
         # ------------------------------ 写回更新后的数据 ------------------------------

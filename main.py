@@ -39,14 +39,14 @@ def sample_pic(account:str):
                 while continue_click:
                     # 循环单个玩家的礼物
                     position = find_template_on_screen(r"F:\Work\Know_Pic\click\Treasure_chest.png",
-                                                               game_window, 0.5)
+                                                               game_window, 0.4)
                     if not position is None:
                         # 点击礼物
                         logging.info("点击礼物")
                         click_on_template(r"F:\Work\Know_Pic\click\Treasure_chest.png", game_window,
                                           position)
                         # 点击确认
-                        time.sleep(1.3)  # 等待确认完全加载
+                        time.sleep(1.4)  # 等待确认完全加载
                         logging.info("点击确认")
                         if not click_on_template(r"F:\Work\Know_Pic\click\Confirm.png", game_window):
                             logging.info("今日礼物已经抢完！")
