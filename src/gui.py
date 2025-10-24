@@ -15,13 +15,78 @@ class AutomationWindow(QMainWindow):
         
     def init_ui(self):
         """初始化用户界面"""
+        # 设置现代风格
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #f5f5f5;
+            }
+            QToolBar {
+                background-color: #ffffff;
+                border: none;
+                spacing: 8px;
+                padding: 4px;
+            }
+            QToolBar QToolButton {
+                background-color: transparent;
+                border: none;
+                padding: 8px;
+                border-radius: 4px;
+            }
+            QToolBar QToolButton:hover {
+                background-color: #e0e0e0;
+            }
+            QPushButton {
+                background-color: #2196f3;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #1976d2;
+            }
+            QPushButton:pressed {
+                background-color: #0d47a1;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+                color: #666666;
+            }
+            QListWidget {
+                background-color: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            QListWidget::item:selected {
+                background-color: #e3f2fd;
+            }
+            QTextEdit {
+                background-color: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                padding: 8px;
+            }
+            QLabel {
+                color: #333333;
+                font-weight: bold;
+            }
+        """)
+        
         self.setWindowTitle('可视化自动化工具')
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 900, 700)
         
         # 创建中心部件和布局
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout()
+        layout.setSpacing(12)
+        layout.setContentsMargins(16, 16, 16, 16)
         central_widget.setLayout(layout)
         
         # 创建工具栏
@@ -198,6 +263,43 @@ class ClickActionDialog(QDialog):
         
     def init_ui(self):
         """初始化对话框界面"""
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #ffffff;
+            }
+            QLabel {
+                color: #333333;
+                font-size: 14px;
+            }
+            QLineEdit {
+                padding: 8px;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: #fafafa;
+            }
+            QLineEdit:focus {
+                border: 2px solid #2196f3;
+            }
+            QDoubleSpinBox, QSpinBox {
+                padding: 8px;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: #fafafa;
+            }
+            QCheckBox {
+                spacing: 8px;
+            }
+            QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+                border-radius: 4px;
+                border: 2px solid #e0e0e0;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #2196f3;
+                border-color: #2196f3;
+            }
+        """)
         self.setWindowTitle('添加点击动作')
         layout = QVBoxLayout()
         
