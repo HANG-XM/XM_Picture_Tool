@@ -3,6 +3,7 @@ import json
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 from actions import Action, ActionType
 from automation import AutomationThread
 from datetime import datetime
@@ -94,7 +95,48 @@ class ThemeManager:
                 border-top: 1px solid {theme['border']};
             }}
         """
-
+class FlowchartGenerator:
+    """流程图生成器"""
+    @staticmethod
+    def generate_flowchart(actions: List[Action]) -> str:
+        """生成流程图的HTML代码"""
+        html = """
+        <html>
+        <head>
+            <style>
+                .flowchart {
+                    font-family: Arial, sans-serif;
+                    padding: 20px;
+                }
+                .node {
+                    border: 2px solid #2196f3;
+                    border-radius: 5px;
+                    padding: 10px;
+                    margin: 10px;
+                    background-color: #f5f5f5;
+                    text-align: center;
+                }
+                .arrow {
+                    text-align: center;
+                    margin: 5px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="flowchart">
+        """
+        
+        for i, action in enumerate(actions):
+            html += f'<div class="node">{i+1}. {action.description}</div>'
+            if i < len(actions) - 1:
+                html += '<div class="arrow">↓</div>'
+                
+        html += """
+            </div>
+        </body>
+        </html>
+        """
+        return html
 class AutomationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -201,6 +243,15 @@ class AutomationWindow(QMainWindow):
         control_layout.addWidget(self.load_btn)
         
         layout.addLayout(control_layout)
+        # 添加流程图显示区域
+        self.flowchart_view = QWebEngineView()
+        self.flowchart_view.setVisible(False)
+        layout.addWidget(self.flowchart_view)
+        
+        # 添加切换按钮
+        self.toggle_flowchart_btn = QPushButton('显示流程图')
+        self.toggle_flowchart_btn.clicked.connect(self.toggle_flowchart)
+        control_layout.insertWidget(0, self.toggle_flowchart_btn)
         # 添加进度条
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
@@ -211,7 +262,21 @@ class AutomationWindow(QMainWindow):
         layout.addWidget(QLabel('执行日志:'))
         layout.addWidget(self.log_text)
 
-        
+    def toggle_flowchart(self):
+        """切换流程图显示"""
+        if self.flowchart_view.isVisible():
+            self.flowchart_view.setVisible(False)
+            self.toggle_flowchart_btn.setText('显示流程图')
+        else:
+            self.flowchart_view.setVisible(True)
+            self.toggle_flowchart_btn.setText('隐藏流程图')
+            self.update_flowchart()
+            
+    def update_flowchart(self):
+        """更新流程图显示"""
+        if self.actions:
+            html = FlowchartGenerator.generate_flowchart(self.actions)
+            self.flowchart_view.setHtml(html)  
     def add_click_action(self):
         """添加点击动作"""
         dialog = ClickActionDialog()
@@ -364,7 +429,9 @@ class AutomationWindow(QMainWindow):
             item.setSizeHint(widget.sizeHint())
             self.action_list.addItem(item)
             self.action_list.setItemWidget(item, widget)
-            
+        # 更新流程图
+        if self.flowchart_view.isVisible():
+            self.update_flowchart()   
     def remove_action(self, index):
         """删除指定索引的动作"""
         if 0 <= index < len(self.actions):
