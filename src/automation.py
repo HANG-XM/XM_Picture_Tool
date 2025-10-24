@@ -4,7 +4,7 @@ import numpy as np
 import pyautogui
 import logging
 from typing import List, Tuple, Optional
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt6.QtCore import QThread, pyqtSignal
 from actions import Action, ActionType
 
 class ImageMatcher:

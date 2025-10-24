@@ -1,14 +1,14 @@
 import sys
 import json
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 from actions import Action, ActionType
 from automation import AutomationThread
 from datetime import datetime
 import os
-
+from typing import List
 class ThemeManager:
     LIGHT_THEME = {
         'bg': '#ffffff',
@@ -280,7 +280,7 @@ class AutomationWindow(QMainWindow):
     def add_click_action(self):
         """添加点击动作"""
         dialog = ClickActionDialog()
-        if dialog.exec_():
+        if dialog.exec():
             action = Action(ActionType.CLICK, dialog.get_params())
             self.actions.append(action)
             self.action_list.addItem(f"点击: {dialog.template_path.text()}")
@@ -471,9 +471,9 @@ class AutomationWindow(QMainWindow):
     def eventFilter(self, obj, event):
         """事件过滤器，处理按钮动画"""
         if isinstance(obj, QPushButton):
-            if event.type() == QEvent.Enter:
+            if event.type() == QEvent.Type.Enter:
                 self.animate_button(obj, True)
-            elif event.type() == QEvent.Leave:
+            elif event.type() == QEvent.Type.Leave:
                 self.animate_button(obj, False)
         return super().eventFilter(obj, event)
         
@@ -489,7 +489,7 @@ class AutomationWindow(QMainWindow):
             cur_geo = button.geometry()
             animation.setStartValue(cur_geo)
             animation.setEndValue(cur_geo.adjusted(2, 2, -2, -2))
-        animation.start(QAbstractAnimation.DeleteWhenStopped)
+        animation.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 
 class ClickActionDialog(QDialog):
     def __init__(self, parent=None):
@@ -769,7 +769,7 @@ def main():
     app = QApplication(sys.argv)
     window = AutomationWindow()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == '__main__':
     main()
