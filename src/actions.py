@@ -28,7 +28,7 @@ class Action:
             return f"条件判断: {self.params.get('template_path', '')}"
         return "未知动作"
 
-    def to_dict() -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             'type': self.type,
             'params': self.params,
