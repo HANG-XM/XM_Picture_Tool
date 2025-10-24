@@ -201,7 +201,10 @@ class AutomationWindow(QMainWindow):
         control_layout.addWidget(self.load_btn)
         
         layout.addLayout(control_layout)
-        
+        # 添加进度条
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        layout.addWidget(self.progress_bar)
         # 创建日志输出
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
@@ -257,9 +260,12 @@ class AutomationWindow(QMainWindow):
             
         self.start_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
         
         self.automation_thread = AutomationThread(self.actions)
         self.automation_thread.log_signal.connect(self.add_log)
+        self.automation_thread.progress_signal.connect(self.update_progress)
         self.automation_thread.finished.connect(self.automation_finished)
         self.automation_thread.start()
         
@@ -267,11 +273,14 @@ class AutomationWindow(QMainWindow):
         """停止执行自动化流程"""
         if self.automation_thread:
             self.automation_thread.stop()
-            
+    def update_progress(self, value):
+        """更新进度条"""
+        self.progress_bar.setValue(value)  
     def automation_finished(self):
         """自动化流程执行完成"""
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
+        self.progress_bar.setVisible(False)
         
     def clear_actions(self):
         """清除所有动作"""
@@ -416,72 +425,52 @@ class AutomationWindow(QMainWindow):
         animation.start(QAbstractAnimation.DeleteWhenStopped)
 
 class ClickActionDialog(QDialog):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.init_ui()
         
     def init_ui(self):
         """初始化对话框界面"""
-        theme = ThemeManager.LIGHT_THEME  # 获取当前主题
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {theme['bg']};
-            }}
-            QLabel {{
-                color: {theme['text']};
-                font-size: 14px;
-            }}
-            QLineEdit {{
-                padding: 8px;
-                border: 1px solid {theme['border']};
-                border-radius: 4px;
-                background-color: {theme['surface']};
-            }}
-            QLineEdit:focus {{
-                border: 2px solid {theme['primary']};
-            }}
-            QDoubleSpinBox, QSpinBox {{
-                padding: 8px;
-                border: 1px solid {theme['border']};
-                border-radius: 4px;
-                background-color: {theme['surface']};
-            }}
-            QCheckBox {{
-                spacing: 8px;
-            }}
-            QCheckBox::indicator {{
-                width: 18px;
-                height: 18px;
-                border-radius: 4px;
-                border: 2px solid {theme['border']};
-            }}
-            QCheckBox::indicator:checked {{
-                background-color: {theme['primary']};
-                border-color: {theme['primary']};
-            }}
-        """)
         self.setWindowTitle('添加点击动作')
         layout = QVBoxLayout()
+        
+        # 添加说明
+        info_label = QLabel("点击动作将在屏幕上查找指定图像并点击匹配位置")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        layout.addWidget(info_label)
         
         # 模板路径
         path_layout = QHBoxLayout()
         path_layout.addWidget(QLabel('模板路径:'))
         self.template_path = QLineEdit()
+        self.template_path.setPlaceholderText("选择要点击的图像模板")
         path_layout.addWidget(self.template_path)
         browse_btn = QPushButton('浏览')
         browse_btn.clicked.connect(self.browse_template)
         path_layout.addWidget(browse_btn)
         layout.addLayout(path_layout)
         
-        # 阈值
+        # 阈值设置
         threshold_layout = QHBoxLayout()
         threshold_layout.addWidget(QLabel('匹配阈值:'))
         self.threshold = QDoubleSpinBox()
         self.threshold.setRange(0.1, 1.0)
         self.threshold.setSingleStep(0.1)
         self.threshold.setValue(0.8)
+        self.threshold.setSuffix(" (0.1-1.0)")
         threshold_layout.addWidget(self.threshold)
         layout.addLayout(threshold_layout)
+        
+        # 添加预览区域
+        self.preview_label = QLabel()
+        self.preview_label.setMinimumSize(200, 200)
+        self.preview_label.setAlignment(Qt.AlignCenter)
+        self.preview_label.setStyleSheet("border: 1px solid #ccc;")
+        layout.addWidget(self.preview_label)
+        
+        # 连接信号
+        self.template_path.textChanged.connect(self.update_preview)
         
         # 按钮
         button_layout = QHBoxLayout()
@@ -494,7 +483,15 @@ class ClickActionDialog(QDialog):
         layout.addLayout(button_layout)
         
         self.setLayout(layout)
-        
+    def update_preview(self):
+        """更新预览图像"""
+        path = self.template_path.text()
+        if path and os.path.exists(path):
+            pixmap = QPixmap(path)
+            scaled_pixmap = pixmap.scaled(200, 200, Qt.KeepAspectRatio)
+            self.preview_label.setPixmap(scaled_pixmap)
+        else:
+            self.preview_label.clear()      
     def browse_template(self):
         """浏览选择模板文件"""
         file_path, _ = QFileDialog.getOpenFileName(self, '选择模板文件', '', 'Image Files (*.png *.jpg *.bmp)')

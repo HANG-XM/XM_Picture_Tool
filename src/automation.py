@@ -58,20 +58,35 @@ class ImageMatcher:
             return []
 
 class AutomationThread(QThread):
-    log_signal = pyqtSignal(str)
+    log_signal = pyqtSignal(str, str)  # 添加日志级别参数
+    progress_signal = pyqtSignal(int)  # 添加进度信号
     finished = pyqtSignal()
     
     def __init__(self, actions: List[Action]):
         super().__init__()
         self.actions = actions
         self.running = True
+        self.current_action_index = 0
         
     def run(self):
         """执行自动化流程"""
         try:
-            for action in self.actions:
+            total_actions = len(self.actions)
+            for i, action in enumerate(self.actions):
                 if not self.running:
                     break
+                    
+                self.current_action_index = i
+                self.progress_signal.emit(int((i / total_actions) * 100))
+                
+                # 验证动作参数
+                error = action.validate()
+                if error:
+                    self.log_signal.emit(f"动作验证失败: {error}", "error")
+                    continue
+                    
+                self.log_signal.emit(f"执行动作: {action.description}", "info")
+                
                 if action.type == ActionType.CLICK:
                     self._handle_click(action.params)
                 elif action.type == ActionType.FIND:
@@ -82,8 +97,11 @@ class AutomationThread(QThread):
                     self._handle_loop(action.params)
                 elif action.type == ActionType.CONDITION:
                     self._handle_condition(action.params)
+                    
+                self.log_signal.emit(f"动作完成: {action.description}", "success")
+                
         except Exception as e:
-            self.log_signal.emit(f"执行错误: {str(e)}")
+            self.log_signal.emit(f"执行错误: {str(e)}", "error")
         finally:
             self.finished.emit()
             
