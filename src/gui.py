@@ -5,13 +5,137 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from actions import Action, ActionType
 from automation import AutomationThread
+from datetime import datetime
+import os
+
+class ThemeManager:
+    LIGHT_THEME = {
+        'bg': '#ffffff',
+        'surface': '#f5f5f5',
+        'primary': '#2196f3',
+        'on_primary': '#ffffff',
+        'text': '#333333',
+        'text_secondary': '#666666',
+        'border': '#e0e0e0',
+        'error': '#f44336',
+        'success': '#4caf50',
+        'warning': '#ff9800'
+    }
+    
+    DARK_THEME = {
+        'bg': '#121212',
+        'surface': '#1e1e1e',
+        'primary': '#90caf9',
+        'on_primary': '#000000',
+        'text': '#ffffff',
+        'text_secondary': '#b0b0b0',
+        'border': '#333333',
+        'error': '#ef5350',
+        'success': '#66bb6a',
+        'warning': '#ffa726'
+    }
+
+    @staticmethod
+    def get_stylesheet(theme):
+        return f"""
+            QMainWindow {{
+                background-color: {theme['bg']};
+            }}
+            QWidget {{
+                background-color: {theme['bg']};
+                color: {theme['text']};
+            }}
+            QToolBar {{
+                background-color: {theme['surface']};
+                border: none;
+                spacing: 8px;
+                padding: 8px;
+                border-bottom: 1px solid {theme['border']};
+            }}
+            QPushButton {{
+                background-color: {theme['primary']};
+                color: {theme['on_primary']};
+                border: none;
+                padding: 10px 20px;
+                border-radius: 6px;
+                font-weight: 500;
+                font-size: 14px;
+            }}
+            QPushButton:hover {{
+                background-color: {theme['primary']};
+                opacity: 0.8;
+            }}
+            QPushButton:pressed {{
+                background-color: {theme['primary']};
+                opacity: 0.6;
+            }}
+            QListWidget {{
+                background-color: {theme['surface']};
+                border: 1px solid {theme['border']};
+                border-radius: 8px;
+                padding: 8px;
+                selection-background-color: {theme['primary']};
+            }}
+            QTextEdit {{
+                background-color: {theme['surface']};
+                border: 1px solid {theme['border']};
+                border-radius: 8px;
+                padding: 12px;
+                font-family: 'Consolas', monospace;
+            }}
+            QLabel {{
+                color: {theme['text']};
+                font-size: 14px;
+                font-weight: 500;
+            }}
+            QStatusBar {{
+                background-color: {theme['surface']};
+                color: {theme['text_secondary']};
+                border-top: 1px solid {theme['border']};
+            }}
+        """
 
 class AutomationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.actions = []
         self.automation_thread = None
+        self.is_dark_mode = False
         self.init_ui()
+        self.setup_status_bar()
+        self.add_animation_effects()
+    def setup_status_bar(self):
+        """设置状态栏"""
+        self.status_bar = self.statusBar()
+        self.theme_btn = QPushButton("🌙")
+        self.theme_btn.setFixedSize(32, 32)
+        self.theme_btn.clicked.connect(self.toggle_theme)
+        self.theme_btn.setStyleSheet("""
+            QPushButton {
+                border: none;
+                background: transparent;
+                font-size: 18px;
+            }
+            QPushButton:hover {
+                background: rgba(255,255,255,0.1);
+                border-radius: 16px;
+            }
+        """)
+        self.status_bar.addPermanentWidget(self.theme_btn)
+        
+    def toggle_theme(self):
+        """切换主题"""
+        self.is_dark_mode = not self.is_dark_mode
+        theme = ThemeManager.DARK_THEME if self.is_dark_mode else ThemeManager.LIGHT_THEME
+        self.setStyleSheet(ThemeManager.get_stylesheet(theme))
+        self.theme_btn.setText("☀️" if self.is_dark_mode else "🌙")
+    def init_ui(self):
+        """初始化用户界面"""
+        # 设置现代风格
+        self.setStyleSheet(ThemeManager.get_stylesheet(ThemeManager.LIGHT_THEME))
+        
+        self.setWindowTitle('可视化自动化工具')
+        self.setGeometry(100, 100, 800, 600)
         
     def init_ui(self):
         """初始化用户界面"""
@@ -239,22 +363,123 @@ class AutomationWindow(QMainWindow):
     def update_action_list(self):
         """更新动作列表显示"""
         self.action_list.clear()
-        for action in self.actions:
+        for i, action in enumerate(self.actions):
+            item = QListWidgetItem()
+            widget = QWidget()
+            layout = QHBoxLayout()
+            
+            # 添加序号
+            num_label = QLabel(f"{i+1}.")
+            num_label.setStyleSheet("font-weight: bold; color: #2196f3;")
+            layout.addWidget(num_label)
+            
+            # 添加动作类型图标
+            icon_label = QLabel()
+            icons = {
+                ActionType.CLICK: "👆",
+                ActionType.FIND: "🔍",
+                ActionType.WAIT: "⏰",
+                ActionType.LOOP: "🔄",
+                ActionType.CONDITION: "❓"
+            }
+            icon_label.setText(icons.get(action.type, "📌"))
+            layout.addWidget(icon_label)
+            
+            # 添加动作描述
+            desc_label = QLabel()
             if action.type == ActionType.CLICK:
-                self.action_list.addItem(f"点击: {action.params['template_path']}")
+                desc_label.setText(f"点击: {os.path.basename(action.params['template_path'])}")
             elif action.type == ActionType.FIND:
-                self.action_list.addItem(f"查找: {action.params['template_path']}")
+                desc_label.setText(f"查找: {os.path.basename(action.params['template_path'])}")
             elif action.type == ActionType.WAIT:
-                self.action_list.addItem(f"等待: {action.params['duration']} 秒")
+                desc_label.setText(f"等待: {action.params['duration']} 秒")
             elif action.type == ActionType.LOOP:
-                self.action_list.addItem(f"循环: {action.params['count']} 次")
+                desc_label.setText(f"循环: {action.params['count']} 次")
             elif action.type == ActionType.CONDITION:
-                self.action_list.addItem(f"条件: {action.params['template_path']}")
+                desc_label.setText(f"条件: {os.path.basename(action.params['template_path'])}")
+            layout.addWidget(desc_label)
+            
+            # 添加删除按钮
+            delete_btn = QPushButton("×")
+            delete_btn.setFixedSize(24, 24)
+            delete_btn.setStyleSheet("""
+                QPushButton {
+                    background: #ff4444;
+                    color: white;
+                    border: none;
+                    border-radius: 12px;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background: #cc0000;
+                }
+            """)
+            delete_btn.clicked.connect(lambda: self.remove_action(i))
+            layout.addWidget(delete_btn)
+            
+            widget.setLayout(layout)
+            item.setSizeHint(widget.sizeHint())
+            self.action_list.addItem(item)
+            self.action_list.setItemWidget(item, widget)
+            
+    def remove_action(self, index):
+        """删除指定索引的动作"""
+        if 0 <= index < len(self.actions):
+            self.actions.pop(index)
+            self.update_action_list()
                 
-    def add_log(self, message):
+    def add_log(self, message, level="info"):
         """添加日志消息"""
-        self.log_text.append(message)
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        colors = {
+            "info": "#2196f3",
+            "warning": "#ff9800",
+            "error": "#f44336",
+            "success": "#4caf50"
+        }
+        color = colors.get(level, "#333333")
+        formatted_message = f'<span style="color: {color}">[{timestamp}] {message}</span>'
+        self.log_text.append(formatted_message)
         self.log_text.verticalScrollBar().setValue(self.log_text.verticalScrollBar().maximum())
+    def add_animation_effects(self):
+        """添加动画效果"""
+        # 添加淡入效果
+        self.fade_effect = QGraphicsOpacityEffect()
+        self.setGraphicsEffect(self.fade_effect)
+        
+        self.animation = QPropertyAnimation(self.fade_effect, b"opacity")
+        self.animation.setDuration(300)
+        self.animation.setStartValue(0)
+        self.animation.setEndValue(1)
+        self.animation.start()
+        
+        # 为按钮添加悬浮动画
+        for btn in self.findChildren(QPushButton):
+            if btn != self.theme_btn:
+                btn.installEventFilter(self)
+                
+    def eventFilter(self, obj, event):
+        """事件过滤器，处理按钮动画"""
+        if isinstance(obj, QPushButton):
+            if event.type() == QEvent.Enter:
+                self.animate_button(obj, True)
+            elif event.type() == QEvent.Leave:
+                self.animate_button(obj, False)
+        return super().eventFilter(obj, event)
+        
+    def animate_button(self, button, enter):
+        """按钮动画效果"""
+        animation = QPropertyAnimation(button, b"geometry")
+        animation.setDuration(200)
+        if enter:
+            cur_geo = button.geometry()
+            animation.setStartValue(cur_geo)
+            animation.setEndValue(cur_geo.adjusted(-2, -2, 2, 2))
+        else:
+            cur_geo = button.geometry()
+            animation.setStartValue(cur_geo)
+            animation.setEndValue(cur_geo.adjusted(2, 2, -2, -2))
+        animation.start(QAbstractAnimation.DeleteWhenStopped)
 
 class ClickActionDialog(QDialog):
     def __init__(self):
