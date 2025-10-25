@@ -472,9 +472,9 @@ class AutomationWindow(QMainWindow):
         self.setGraphicsEffect(self.fade_effect)
         
         self.animation = QPropertyAnimation(self.fade_effect, b"opacity")
-        self.animation.setDuration(300)
-        self.animation.setStartValue(0)
-        self.animation.setEndValue(1)
+        self.animation.setDuration(100)
+        self.animation.setStartValue(0.9)
+        self.animation.setEndValue(1.0)
         self.animation.start()
         
         # 为按钮添加悬浮动画
