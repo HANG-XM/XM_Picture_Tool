@@ -184,7 +184,20 @@ class AutomationThread(QThread):
                     self._handle_find(action.params)
                 elif action.type == ActionType.WAIT:
                     self._handle_wait(action.params)
-                    
+    def _handle_batch_click(self, params):
+        """处理批量点击动作"""
+        template_path = params['template_path']
+        threshold = params.get('threshold', 0.8)
+        region = params.get('region', None)
+        positions = ImageMatcher.find_all_templates(template_path, threshold, region)
+        if positions:
+            for position in positions:
+                if not self.running:
+                    break
+                pyautogui.click(position[0], position[1])
+                self.log_signal.emit(f"点击位置: {position}")
+        else:
+            self.log_signal.emit(f"未找到图像: {template_path}")   
     def stop(self):
         """停止执行"""
         self.running = False

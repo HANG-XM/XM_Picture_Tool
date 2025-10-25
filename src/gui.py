@@ -206,6 +206,10 @@ class AutomationWindow(QMainWindow):
         add_click_action = QAction('添加点击', self)
         add_click_action.triggered.connect(self.add_click_action)
         toolbar.addAction(add_click_action)
+
+        add_batch_click_action = QAction('添加批量点击', self)
+        add_batch_click_action.triggered.connect(self.add_batch_click_action)
+        toolbar.addAction(add_batch_click_action)
         
         add_find_action = QAction('添加查找', self)
         add_find_action.triggered.connect(self.add_find_action)
@@ -336,7 +340,14 @@ class AutomationWindow(QMainWindow):
             self.actions.append(action)
             self.action_list.addItem(f"条件: {dialog.template_path.text()}")
             self.update_flowchart()
-            
+    def add_batch_click_action(self):
+        """添加批量点击动作"""
+        dialog = BatchClickActionDialog()
+        if dialog.exec_():
+            action = Action(ActionType.BATCH_CLICK, dialog.get_params())
+            self.actions.append(action)
+            self.action_list.addItem(f"批量点击: {dialog.template_path.text()}")
+            self.update_flowchart()   
     def start_automation(self):
         """开始执行自动化流程"""
         if not self.actions:
@@ -783,6 +794,71 @@ class ConditionActionDialog(QDialog):
             'threshold': self.threshold.value(),
             'true_actions': [],  # 这里可以添加条件为真时的动作
             'false_actions': []  # 这里可以添加条件为假时的动作
+        }
+class BatchClickActionDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+        
+    def init_ui(self):
+        """初始化对话框界面"""
+        self.setWindowTitle('添加批量点击动作')
+        layout = QVBoxLayout()
+        
+        # 模板路径
+        path_layout = QHBoxLayout()
+        path_layout.addWidget(QLabel('模板路径:'))
+        self.template_path = QLineEdit()
+        path_layout.addWidget(self.template_path)
+        browse_btn = QPushButton('浏览')
+        browse_btn.clicked.connect(self.browse_template)
+        path_layout.addWidget(browse_btn)
+        layout.addLayout(path_layout)
+        
+        # 阈值
+        threshold_layout = QHBoxLayout()
+        threshold_layout.addWidget(QLabel('匹配阈值:'))
+        self.threshold = QDoubleSpinBox()
+        self.threshold.setRange(0.1, 1.0)
+        self.threshold.setSingleStep(0.1)
+        self.threshold.setValue(0.8)
+        threshold_layout.addWidget(self.threshold)
+        layout.addLayout(threshold_layout)
+        
+        # 点击间隔
+        interval_layout = QHBoxLayout()
+        interval_layout.addWidget(QLabel('点击间隔(秒):'))
+        self.interval = QDoubleSpinBox()
+        self.interval.setRange(0.1, 5.0)
+        self.interval.setSingleStep(0.1)
+        self.interval.setValue(0.5)
+        interval_layout.addWidget(self.interval)
+        layout.addLayout(interval_layout)
+        
+        # 按钮
+        button_layout = QHBoxLayout()
+        ok_btn = QPushButton('确定')
+        ok_btn.clicked.connect(self.accept)
+        button_layout.addWidget(ok_btn)
+        cancel_btn = QPushButton('取消')
+        cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_btn)
+        layout.addLayout(button_layout)
+        
+        self.setLayout(layout)
+        
+    def browse_template(self):
+        """浏览选择模板文件"""
+        file_path, _ = QFileDialog.getOpenFileName(self, '选择模板文件', '', 'Image Files (*.png *.jpg *.bmp)')
+        if file_path:
+            self.template_path.setText(file_path)
+            
+    def get_params(self):
+        """获取参数"""
+        return {
+            'template_path': self.template_path.text(),
+            'threshold': self.threshold.value(),
+            'interval': self.interval.value()
         }
 
 def main():

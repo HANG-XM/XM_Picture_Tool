@@ -7,6 +7,7 @@ class ActionType:
     WAIT = "wait"
     LOOP = "loop"
     CONDITION = "condition"
+    BATCH_CLICK = "batch_click"
 
 class Action:
     def __init__(self, type: str, params: dict):
@@ -18,6 +19,8 @@ class Action:
         """生成动作描述"""
         if self.type == ActionType.CLICK:
             return f"点击图像: {self.params.get('template_path', '')}"
+        elif self.type == ActionType.BATCH_CLICK:
+            return f"批量点击图像: {self.params.get('template_path', '')}"
         elif self.type == ActionType.FIND:
             return f"查找图像: {self.params.get('template_path', '')}"
         elif self.type == ActionType.WAIT:
