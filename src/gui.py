@@ -464,42 +464,53 @@ class ActionEditor(QWidget):
         node = ActionNode(action.type, action.params)
         self.scene.addItem(node)
         return action
-            
+    def add_click_action(self):
+        """添加点击动作"""
+        dialog = ClickActionDialog()
+        if dialog.exec_():
+            action = Action(ActionType.CLICK, dialog.get_params())
+            return self.add_action(action)            
     def add_find_action(self):
+        """添加查找动作"""
         dialog = FindActionDialog()
         if dialog.exec_():
-            node = ActionNode(ActionType.FIND, dialog.get_params())
-            self.scene.addItem(node)
+            action = Action(ActionType.FIND, dialog.get_params())
+            return self.add_action(action)
             
     def add_wait_action(self):
+        """添加等待动作"""
         dialog = WaitActionDialog()
         if dialog.exec_():
-            node = ActionNode(ActionType.WAIT, dialog.get_params())
-            self.scene.addItem(node)
-            
+            action = Action(ActionType.WAIT, dialog.get_params())
+            return self.add_action(action)
+
     def add_loop_action(self):
+        """添加循环动作"""
         dialog = LoopActionDialog()
         if dialog.exec_():
-            node = ActionNode(ActionType.LOOP, dialog.get_params())
-            self.scene.addItem(node)
-            
+            action = Action(ActionType.LOOP, dialog.get_params())
+            return self.add_action(action)
+
     def add_condition_action(self):
+        """添加条件动作"""
         dialog = ConditionActionDialog()
         if dialog.exec_():
-            node = ActionNode(ActionType.CONDITION, dialog.get_params())
-            self.scene.addItem(node)
-            
+            action = Action(ActionType.CONDITION, dialog.get_params())
+            return self.add_action(action)
+
     def add_parallel_action(self):
+        """添加并行动作"""
         dialog = ParallelActionDialog()
         if dialog.exec_():
-            node = ActionNode(ActionType.PARALLEL, dialog.get_params())
-            self.scene.addItem(node)
-            
+            action = Action(ActionType.PARALLEL, dialog.get_params())
+            return self.add_action(action)
+
     def add_sequence_action(self):
+        """添加序列动作"""
         dialog = SequenceActionDialog()
         if dialog.exec_():
-            node = ActionNode(ActionType.SEQUENCE, dialog.get_params())
-            self.scene.addItem(node)
+            action = Action(ActionType.SEQUENCE, dialog.get_params())
+            return self.add_action(action)
 class BaseActionDialog(QDialog):
     """动作对话框基类"""
     def __init__(self, title: str, description: str, parent=None):
