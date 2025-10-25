@@ -418,7 +418,11 @@ class ActionNode(QGraphicsItem):
         
         # 绘制文本
         painter.drawText(10, 20, self.action_type)
-        painter.drawText(10, 40, str(self.params)[:20])
+        # 绘制参数文本
+        param_text = str(self.params)[:20]
+        if len(str(self.params)) > 20:
+            param_text += "..."
+        painter.drawText(10, 40, param_text)
 
 class ActionEditor(QWidget):
     """动作可视化编辑器"""
@@ -434,6 +438,8 @@ class ActionEditor(QWidget):
         self.canvas = QGraphicsView()
         self.scene = QGraphicsScene()
         self.canvas.setScene(self.scene)
+        # 设置场景大小
+        self.scene.setSceneRect(0, 0, 800, 200)
         layout.addWidget(self.canvas)
         
         # 工具栏
@@ -457,12 +463,14 @@ class ActionEditor(QWidget):
             
         layout.addWidget(toolbar)
         self.setLayout(layout)
-        
     def add_action(self, action: Action):
         """添加动作到编辑器"""
         self.actions.append(action)
         node = ActionNode(action.type, action.params)
+        # 设置节点位置
+        node.setPos(len(self.actions) * 160, 0)
         self.scene.addItem(node)
+        self.scene.setSceneRect(self.scene.itemsBoundingRect())
         return action
     def add_click_action(self):
         """添加点击动作"""
