@@ -608,8 +608,8 @@ class AutomationWindow(QMainWindow):
             item = QListWidgetItem()
             widget = QWidget()
             layout = QHBoxLayout()
-            layout.setContentsMargins(5, 8, 5, 8)
-            layout.setSpacing(10)
+            layout.setContentsMargins(5, 8, 5, 8)  # 增加上下边距
+            layout.setSpacing(10)  # 增加元素间距
             
             # 添加序号
             num_label = QLabel(f"{i+1}.")
@@ -620,11 +620,11 @@ class AutomationWindow(QMainWindow):
             icon_label = QLabel()
             icons = {
                 ActionType.CLICK: "👆",
-                ActionType.FIND: "🔍", 
+                ActionType.FIND: "🔍",
                 ActionType.WAIT: "⏰",
                 ActionType.LOOP: "🔄",
                 ActionType.CONDITION: "❓",
-                ActionType.BATCH_CLICK: "👆👆"  # 添加批量点击图标
+                ActionType.BATCH_CLICK: "👆👆"
             }
             icon_label.setText(icons.get(action.type, "📌"))
             icon_label.setStyleSheet("min-width: 20px;")
@@ -651,12 +651,13 @@ class AutomationWindow(QMainWindow):
                 template_path = action.params.get('template_path', '未知')
                 desc_label.setText(f"批量点击: {os.path.basename(template_path)}")
             desc_label.setStyleSheet("padding: 0 10px;")
+            desc_label.setWordWrap(True)  # 允许文字换行
             layout.addWidget(desc_label)
             
             # 添加弹性空间
             layout.addStretch()
             
-            # 添加删除按钮 - 修复lambda作用域问题
+            # 添加删除按钮
             delete_btn = QPushButton("×")
             delete_btn.setFixedSize(28, 28)
             delete_btn.setStyleSheet("""
@@ -672,16 +673,17 @@ class AutomationWindow(QMainWindow):
                     background: #cc0000;
                 }
             """)
-            # 使用闭包解决lambda变量绑定问题
             delete_btn.clicked.connect(lambda checked, index=i: self.remove_action(index))
             layout.addWidget(delete_btn)
             
             widget.setLayout(layout)
-            item.setSizeHint(QSize(item.sizeHint().width(), 40))
+            # 设置合适的高度，确保内容完整显示
+            item.setSizeHint(QSize(widget.sizeHint().width(), 50))
             self.action_list.addItem(item)
             self.action_list.setItemWidget(item, widget)
         
         self.update_flowchart()
+
 
     def remove_action(self, index):
         """删除指定索引的动作"""
