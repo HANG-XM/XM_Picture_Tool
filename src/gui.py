@@ -11,29 +11,43 @@ import os
 from typing import List
 class ThemeManager:
     LIGHT_THEME = {
-        'bg': '#ffffff',
-        'surface': '#f5f5f5',
-        'primary': '#2196f3',
+        'bg': '#fafafa',                    # 更柔和的背景色
+        'surface': '#ffffff',               # 纯白表面
+        'primary': '#1976d2',               # 更现代的蓝色
+        'primary_variant': '#1565c0',       # 深蓝色变体
+        'secondary': '#7c4dff',            # 紫色作为强调色
         'on_primary': '#ffffff',
-        'text': '#333333',
-        'text_secondary': '#666666',
+        'on_secondary': '#ffffff',
+        'text': '#212121',                  # 深色文字
+        'text_secondary': '#757575',        # 次要文字
+        'text_hint': '#bdbdbd',             # 提示文字
         'border': '#e0e0e0',
         'error': '#f44336',
+        'warning': '#ff9800',
         'success': '#4caf50',
-        'warning': '#ff9800'
+        'info': '#2196f3',
+        'shadow': 'rgba(0, 0, 0, 0.12)',     # 阴影颜色
+        'divider': '#eeeeee'                # 分割线颜色
     }
     
     DARK_THEME = {
         'bg': '#121212',
         'surface': '#1e1e1e',
         'primary': '#90caf9',
+        'primary_variant': '#64b5f6',
+        'secondary': '#7c4dff',
         'on_primary': '#000000',
+        'on_secondary': '#ffffff',
         'text': '#ffffff',
         'text_secondary': '#b0b0b0',
+        'text_hint': '#757575',
         'border': '#333333',
         'error': '#ef5350',
+        'warning': '#ffa726',
         'success': '#66bb6a',
-        'warning': '#ffa726'
+        'info': '#42a5f5',
+        'shadow': 'rgba(0, 0, 0, 0.24)',
+        'divider': '#2c2c2c'
     }
 
     @staticmethod
@@ -42,57 +56,137 @@ class ThemeManager:
             QMainWindow {{
                 background-color: {theme['bg']};
             }}
+            
             QWidget {{
                 background-color: {theme['bg']};
                 color: {theme['text']};
+                font-family: 'Segoe UI', Arial, sans-serif;
             }}
+            
             QToolBar {{
                 background-color: {theme['surface']};
                 border: none;
                 spacing: 8px;
                 padding: 8px;
-                border-bottom: 1px solid {theme['border']};
+                border-bottom: 1px solid {theme['divider']};
             }}
+            
             QPushButton {{
                 background-color: {theme['primary']};
                 color: {theme['on_primary']};
                 border: none;
-                padding: 10px 20px;
-                border-radius: 6px;
+                padding: 8px 16px;
+                border-radius: 4px;
                 font-weight: 500;
                 font-size: 14px;
+                transition: all 0.2s ease;
             }}
+            
             QPushButton:hover {{
-                background-color: {theme['primary']};
-                opacity: 0.8;
+                background-color: {theme['primary_variant']};
+                transform: translateY(-1px);
             }}
+            
             QPushButton:pressed {{
-                background-color: {theme['primary']};
-                opacity: 0.6;
+                background-color: {theme['primary_variant']};
+                transform: translateY(1px);
             }}
+            
+            QPushButton:disabled {{
+                background-color: {theme['border']};
+                color: {theme['text_hint']};
+            }}
+            
             QListWidget {{
                 background-color: {theme['surface']};
                 border: 1px solid {theme['border']};
                 border-radius: 8px;
-                padding: 8px;
+                padding: 4px;
                 selection-background-color: {theme['primary']};
+                outline: none;
             }}
+            
+            QListWidget::item {{
+                padding: 8px;
+                border-radius: 4px;
+                margin: 2px;
+            }}
+            
+            QListWidget::item:selected {{
+                background-color: {theme['primary']};
+                color: {theme['on_primary']};
+            }}
+            
             QTextEdit {{
                 background-color: {theme['surface']};
                 border: 1px solid {theme['border']};
                 border-radius: 8px;
                 padding: 12px;
                 font-family: 'Consolas', monospace;
+                selection-background-color: {theme['primary']};
             }}
+            
             QLabel {{
                 color: {theme['text']};
                 font-size: 14px;
                 font-weight: 500;
             }}
+            
             QStatusBar {{
                 background-color: {theme['surface']};
                 color: {theme['text_secondary']};
-                border-top: 1px solid {theme['border']};
+                border-top: 1px solid {theme['divider']};
+            }}
+            
+            QSpinBox, QDoubleSpinBox {{
+                background-color: {theme['surface']};
+                border: 1px solid {theme['border']};
+                border-radius: 4px;
+                padding: 4px;
+                selection-background-color: {theme['primary']};
+            }}
+            
+            QLineEdit {{
+                background-color: {theme['surface']};
+                border: 1px solid {theme['border']};
+                border-radius: 4px;
+                padding: 6px 12px;
+                selection-background-color: {theme['primary']};
+            }}
+            
+            QLineEdit:focus {{
+                border-color: {theme['primary']};
+            }}
+            
+            QProgressBar {{
+                border: none;
+                border-radius: 4px;
+                text-align: center;
+                color: {theme['on_primary']};
+                background-color: {theme['border']};
+            }}
+            
+            QProgressBar::chunk {{
+                background-color: {theme['primary']};
+                border-radius: 4px;
+            }}
+            
+            QCheckBox {{
+                spacing: 8px;
+            }}
+            
+            QCheckBox::indicator {{
+                width: 18px;
+                height: 18px;
+                border-radius: 4px;
+                border: 2px solid {theme['border']};
+                background-color: {theme['surface']};
+            }}
+            
+            QCheckBox::indicator:checked {{
+                background-color: {theme['primary']};
+                border-color: {theme['primary']};
+                image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAxNCAxNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMNCAxMEwxIDciIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=);
             }}
         """
 class FlowchartGenerator:
@@ -156,22 +250,24 @@ class AutomationWindow(QMainWindow):
         self.init_ui()
         self.setup_status_bar()
         self.add_animation_effects()
+        
     def setup_status_bar(self):
         """设置状态栏"""
         self.status_bar = self.statusBar()
         self.theme_btn = QPushButton("🌙")
         self.theme_btn.setFixedSize(32, 32)
         self.theme_btn.clicked.connect(self.toggle_theme)
-        self.theme_btn.setStyleSheet("""
-            QPushButton {
+        self.theme_btn.setStyleSheet(f"""
+            QPushButton {{
                 border: none;
                 background: transparent;
                 font-size: 18px;
-            }
-            QPushButton:hover {
-                background: rgba(255,255,255,0.1);
+                padding: 4px;
                 border-radius: 16px;
-            }
+            }}
+            QPushButton:hover {{
+                background: rgba(255,255,255,0.1);
+            }}
         """)
         self.status_bar.addPermanentWidget(self.theme_btn)
         
@@ -188,94 +284,145 @@ class AutomationWindow(QMainWindow):
         self.setStyleSheet(ThemeManager.get_stylesheet(ThemeManager.LIGHT_THEME))
         
         self.setWindowTitle('可视化自动化工具')
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 1000, 700)  # 增加默认窗口大小
         
         # 创建中心部件和布局
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout()
-        layout.setSpacing(12)
-        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(16)  # 增加间距
+        layout.setContentsMargins(20, 20, 20, 20)  # 增加边距
         central_widget.setLayout(layout)
         
         # 创建工具栏
         toolbar = QToolBar()
+        toolbar.setMovable(False)  # 固定工具栏
+        toolbar.setIconSize(QSize(24, 24))  # 统一图标大小
         self.addToolBar(toolbar)
         
         # 添加动作按钮
-        add_click_action = QAction('添加点击', self)
-        add_click_action.triggered.connect(self.add_click_action)
-        toolbar.addAction(add_click_action)
-
-        add_batch_click_action = QAction('添加批量点击', self)
-        add_batch_click_action.triggered.connect(self.add_batch_click_action)
-        toolbar.addAction(add_batch_click_action)
-
-        add_find_action = QAction('添加查找', self)
-        add_find_action.triggered.connect(self.add_find_action)
-        toolbar.addAction(add_find_action)
+        actions = [
+            ('添加点击', self.add_click_action),
+            ('添加批量点击', self.add_batch_click_action),
+            ('添加查找', self.add_find_action),
+            ('添加等待', self.add_wait_action),
+            ('添加循环', self.add_loop_action),
+            ('添加条件', self.add_condition_action)
+        ]
         
-        add_wait_action = QAction('添加等待', self)
-        add_wait_action.triggered.connect(self.add_wait_action)
-        toolbar.addAction(add_wait_action)
+        for text, handler in actions:
+            action = QAction(text, self)
+            action.triggered.connect(handler)
+            toolbar.addAction(action)
+            
+        # 添加分隔符
+        toolbar.addSeparator()
         
-        add_loop_action = QAction('添加循环', self)
-        add_loop_action.triggered.connect(self.add_loop_action)
-        toolbar.addAction(add_loop_action)
+        # 创建动作列表区域
+        list_container = QWidget()
+        list_layout = QVBoxLayout()
+        list_layout.setSpacing(8)
         
-        add_condition_action = QAction('添加条件', self)
-        add_condition_action.triggered.connect(self.add_condition_action)
-        toolbar.addAction(add_condition_action)
+        list_header = QLabel('动作列表')
+        list_header.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 4px;")
+        list_layout.addWidget(list_header)
         
-        # 创建动作列表
         self.action_list = QListWidget()
-        layout.addWidget(QLabel('动作列表:'))
-        layout.addWidget(self.action_list)
+        self.action_list.setMinimumHeight(200)
+        list_layout.addWidget(self.action_list)
         
-        # 创建控制按钮
+        list_container.setLayout(list_layout)
+        layout.addWidget(list_container)
+        
+        # 创建控制按钮区域
+        control_container = QWidget()
         control_layout = QHBoxLayout()
+        control_layout.setSpacing(12)
         
-        self.start_btn = QPushButton('开始执行')
-        self.start_btn.clicked.connect(self.start_automation)
-        control_layout.addWidget(self.start_btn)
+        buttons = [
+            ('开始执行', self.start_automation, 'primary'),
+            ('停止执行', self.stop_automation, 'error'),
+            ('清除所有', self.clear_actions, 'warning'),
+            ('保存流程', self.save_workflow, 'success'),
+            ('加载流程', self.load_workflow, 'info')
+        ]
         
-        self.stop_btn = QPushButton('停止执行')
-        self.stop_btn.clicked.connect(self.stop_automation)
-        self.stop_btn.setEnabled(False)
-        control_layout.addWidget(self.stop_btn)
-        
-        self.clear_btn = QPushButton('清除所有')
-        self.clear_btn.clicked.connect(self.clear_actions)
-        control_layout.addWidget(self.clear_btn)
-        
-        self.save_btn = QPushButton('保存流程')
-        self.save_btn.clicked.connect(self.save_workflow)
-        control_layout.addWidget(self.save_btn)
-        
-        self.load_btn = QPushButton('加载流程')
-        self.load_btn.clicked.connect(self.load_workflow)
-        control_layout.addWidget(self.load_btn)
-        
-        layout.addLayout(control_layout)
+        for text, handler, style_type in buttons:
+            btn = QPushButton(text)
+            btn.clicked.connect(handler)
+            if style_type == 'primary':
+                btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {ThemeManager.LIGHT_THEME['primary']};
+                        color: {ThemeManager.LIGHT_THEME['on_primary']};
+                    }}
+                """)
+            elif style_type == 'error':
+                btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {ThemeManager.LIGHT_THEME['error']};
+                        color: white;
+                    }}
+                """)
+            elif style_type == 'warning':
+                btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {ThemeManager.LIGHT_THEME['warning']};
+                        color: white;
+                    }}
+                """)
+            elif style_type == 'success':
+                btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {ThemeManager.LIGHT_THEME['success']};
+                        color: white;
+                    }}
+                """)
+            control_layout.addWidget(btn)
+            
+        control_container.setLayout(control_layout)
+        layout.addWidget(control_container)
         
         # 添加流程图显示区域
+        flowchart_container = QWidget()
+        flowchart_layout = QVBoxLayout()
+        flowchart_layout.setSpacing(8)
+        
+        flowchart_header = QLabel('流程图')
+        flowchart_header.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 4px;")
+        flowchart_layout.addWidget(flowchart_header)
+        
         self.flowchart_view = QWebEngineView()
         self.flowchart_view.setMinimumHeight(200)
-        self.flowchart_view.setUrl(QUrl("about:blank"))  # 初始化空白页面
+        self.flowchart_view.setUrl(QUrl("about:blank"))
         self.flowchart_view.setVisible(True)
-        layout.addWidget(self.flowchart_view)
+        flowchart_layout.addWidget(self.flowchart_view)
+        
+        flowchart_container.setLayout(flowchart_layout)
+        layout.addWidget(flowchart_container)
         
         # 添加进度条
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
+        self.progress_bar.setTextVisible(True)
         layout.addWidget(self.progress_bar)
         
-        # 创建日志输出
+        # 创建日志输出区域
+        log_container = QWidget()
+        log_layout = QVBoxLayout()
+        log_layout.setSpacing(8)
+        
+        log_header = QLabel('执行日志')
+        log_header.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 4px;")
+        log_layout.addWidget(log_header)
+        
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
-        layout.addWidget(QLabel('执行日志:'))
-        layout.addWidget(self.log_text)
-            
+        self.log_text.setMinimumHeight(150)
+        log_layout.addWidget(self.log_text)
+        
+        log_container.setLayout(log_layout)
+        layout.addWidget(log_container)
     def update_flowchart(self):
         """更新流程图显示"""
         if self.actions:
