@@ -486,48 +486,62 @@ class ActionEditor(QWidget):
         if dialog.exec_():
             action = Action(ActionType.CLICK, dialog.get_params())
             self.add_action(action)
-            self.update_flowchart()           
+            if self.parent() and isinstance(self.parent(), AutomationWindow):
+                self.parent().update_flowchart()        
+
     def add_find_action(self):
         """添加查找动作"""
         dialog = FindActionDialog()
         if dialog.exec_():
             action = Action(ActionType.FIND, dialog.get_params())
-            return self.add_action(action)
-            
+            self.add_action(action)
+            if self.parent() and isinstance(self.parent(), AutomationWindow):
+                self.parent().update_flowchart()
+
     def add_wait_action(self):
         """添加等待动作"""
         dialog = WaitActionDialog()
         if dialog.exec_():
             action = Action(ActionType.WAIT, dialog.get_params())
-            return self.add_action(action)
+            self.add_action(action)
+            if self.parent() and isinstance(self.parent(), AutomationWindow):
+                self.parent().update_flowchart()
 
     def add_loop_action(self):
         """添加循环动作"""
         dialog = LoopActionDialog()
         if dialog.exec_():
             action = Action(ActionType.LOOP, dialog.get_params())
-            return self.add_action(action)
+            self.add_action(action)
+            if self.parent() and isinstance(self.parent(), AutomationWindow):
+                self.parent().update_flowchart()
 
     def add_condition_action(self):
         """添加条件动作"""
         dialog = ConditionActionDialog()
         if dialog.exec_():
             action = Action(ActionType.CONDITION, dialog.get_params())
-            return self.add_action(action)
+            self.add_action(action)
+            if self.parent() and isinstance(self.parent(), AutomationWindow):
+                self.parent().update_flowchart()
 
     def add_parallel_action(self):
         """添加并行动作"""
         dialog = ParallelActionDialog()
         if dialog.exec_():
             action = Action(ActionType.PARALLEL, dialog.get_params())
-            return self.add_action(action)
+            self.add_action(action)
+            if self.parent() and isinstance(self.parent(), AutomationWindow):
+                self.parent().update_flowchart()
 
     def add_sequence_action(self):
         """添加序列动作"""
         dialog = SequenceActionDialog()
         if dialog.exec_():
             action = Action(ActionType.SEQUENCE, dialog.get_params())
-            return self.add_action(action)
+            self.add_action(action)
+            if self.parent() and isinstance(self.parent(), AutomationWindow):
+                self.parent().update_flowchart()
 class BaseActionDialog(QDialog):
     """动作对话框基类"""
     def __init__(self, title: str, description: str, parent=None):
