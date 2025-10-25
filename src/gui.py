@@ -624,6 +624,10 @@ class AutomationWindow(QMainWindow):
         self.setup_status_bar()
         self.add_animation_effects()
         
+        # 调整窗口大小
+        self.resize(800, 600)  # 设置更合适的默认大小
+        self.setMinimumSize(640, 480)  # 设置最小尺寸
+        
     def setup_status_bar(self):
         """设置状态栏"""
         self.status_bar = self.statusBar()
@@ -655,7 +659,17 @@ class AutomationWindow(QMainWindow):
         """初始化用户界面"""
         self.setStyleSheet(ThemeManager.get_stylesheet(ThemeManager.LIGHT_THEME))
         self.setWindowTitle('可视化自动化工具')
-        self.setGeometry(100, 100, 1200, 800)
+        
+        # 使用屏幕大小的一定比例来设置窗口大小
+        screen = QApplication.desktop().screenGeometry()
+        width = int(screen.width() * 0.8)
+        height = int(screen.height() * 0.8)
+        self.setGeometry(
+            (screen.width() - width) // 2,  # 居中显示
+            (screen.height() - height) // 2,
+            width,
+            height
+        )
         
         # 创建中心部件
         central_widget = QWidget()
@@ -693,12 +707,12 @@ class AutomationWindow(QMainWindow):
         layout.addWidget(self.action_editor)
         # 创建流程图视图
         self.flowchart_view = QWebEngineView()
-        self.flowchart_view.setMaximumHeight(150)
+        self.flowchart_view.setMaximumHeight(100)
         layout.addWidget(self.flowchart_view)
 
         # 创建动作列表
         self.action_list = QListWidget()
-        self.action_list.setMaximumHeight(150)
+        self.action_list.setMaximumHeight(120)
         layout.addWidget(self.action_list)
 
         # 创建开始和停止按钮
