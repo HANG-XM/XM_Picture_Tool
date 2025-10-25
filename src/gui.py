@@ -9,6 +9,53 @@ from automation import AutomationThread
 from datetime import datetime
 import os
 from typing import List
+class SplashScreen(QSplashScreen):
+    """启动画面"""
+    def __init__(self):
+        # 创建启动画面
+        super().__init__()
+        
+        # 设置启动画面大小
+        self.setFixedSize(400, 300)
+        
+        # 创建加载动画
+        self.movie = QMovie("loading.gif")  # 需要添加一个loading.gif文件
+        self.movie.frameChanged.connect(self.handle_frame)
+        self.movie.start()
+        
+        # 创建进度条
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setGeometry(50, 250, 300, 20)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        
+        # 设置样式
+        self.setStyleSheet("""
+            QSplashScreen {
+                background-color: #ffffff;
+                border-radius: 10px;
+            }
+            QProgressBar {
+                border: none;
+                background-color: #e0e0e0;
+                border-radius: 10px;
+            }
+            QProgressBar::chunk {
+                background-color: #1976d2;
+                border-radius: 10px;
+            }
+        """)
+        
+    def handle_frame(self):
+        """处理动画帧"""
+        current_pixmap = self.movie.currentPixmap()
+        if not current_pixmap.isNull():
+            self.setPixmap(current_pixmap.scaled(400, 300, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            
+    def set_progress(self, value):
+        """设置进度"""
+        self.progress_bar.setValue(value)
 class ThemeManager:
     LIGHT_THEME = {
         'bg': '#fafafa',

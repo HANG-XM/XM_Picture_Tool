@@ -2,9 +2,9 @@ import os
 import sys
 from ctypes import windll
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from gui import AutomationWindow
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QIcon, QMovie
+from gui import AutomationWindow, SplashScreen
 
 def set_dpi_awareness():
     """设置Windows DPI感知"""
@@ -40,11 +40,32 @@ if __name__ == '__main__':
         
         app = QApplication(sys.argv)
         
+        # 创建启动画面
+        splash = SplashScreen()
+        splash.show()
+        
+        # 模拟加载过程
+        progress = 0
+        timer = QTimer()
+        
+        def update_progress():
+            nonlocal progress
+            progress += 20
+            splash.set_progress(progress)
+            if progress >= 100:
+                timer.stop()
+                # 创建并显示主窗口
+                window = AutomationWindow()
+                window.show()
+                splash.finish(window)
+        
+        # 每500毫秒更新一次进度
+        timer.timeout.connect(update_progress)
+        timer.start(500)
+        
         # 设置应用程序图标
         app.setWindowIcon(QIcon('icon.ico'))
         
-        window = AutomationWindow()
-        window.show()
         sys.exit(app.exec())
     except Exception as e:
         print(f"程序启动错误: {e}")
