@@ -424,6 +424,7 @@ class ActionEditor(QWidget):
     """动作可视化编辑器"""
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.actions = []  # 添加动作列表
         self.init_ui()
         
     def init_ui(self):
@@ -457,11 +458,12 @@ class ActionEditor(QWidget):
         layout.addWidget(toolbar)
         self.setLayout(layout)
         
-    def add_click_action(self):
-        dialog = ClickActionDialog()
-        if dialog.exec_():
-            node = ActionNode(ActionType.CLICK, dialog.get_params())
-            self.scene.addItem(node)
+    def add_action(self, action: Action):
+        """添加动作到编辑器"""
+        self.actions.append(action)
+        node = ActionNode(action.type, action.params)
+        self.scene.addItem(node)
+        return action
             
     def add_find_action(self):
         dialog = FindActionDialog()
@@ -835,8 +837,7 @@ class AutomationWindow(QMainWindow):
         dialog = ClickActionDialog()
         if dialog.exec_():
             action = Action(ActionType.CLICK, dialog.get_params())
-            self.actions.append(action)
-            # 改为调用 update_action_list 而不是直接添加
+            self.action_editor.add_action(action)
             self.update_action_list()
             self.update_flowchart()
 
@@ -1120,12 +1121,7 @@ class AutomationWindow(QMainWindow):
         
     def get_actions_from_editor(self) -> List[Action]:
         """从编辑器获取动作列表"""
-        actions = []
-        for item in self.action_editor.scene.items():
-            if isinstance(item, ActionNode):
-                action = Action(item.action_type, item.params)
-                actions.append(action)
-        return actions
+        return self.action_editor.actions
         
     def load_actions_to_editor(self, actions: List[Action]):
         """将动作加载到编辑器"""
