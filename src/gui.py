@@ -596,29 +596,47 @@ class FindActionDialog(QDialog):
         self.setWindowTitle('添加查找动作')
         layout = QVBoxLayout()
         
+        # 添加说明
+        info_label = QLabel("查找动作将在屏幕上搜索指定图像位置")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        layout.addWidget(info_label)
+        
         # 模板路径
         path_layout = QHBoxLayout()
         path_layout.addWidget(QLabel('模板路径:'))
         self.template_path = QLineEdit()
+        self.template_path.setPlaceholderText("选择要查找的图像模板")
         path_layout.addWidget(self.template_path)
         browse_btn = QPushButton('浏览')
         browse_btn.clicked.connect(self.browse_template)
         path_layout.addWidget(browse_btn)
         layout.addLayout(path_layout)
         
-        # 阈值
+        # 阈值设置
         threshold_layout = QHBoxLayout()
         threshold_layout.addWidget(QLabel('匹配阈值:'))
         self.threshold = QDoubleSpinBox()
         self.threshold.setRange(0.1, 1.0)
         self.threshold.setSingleStep(0.1)
         self.threshold.setValue(0.8)
+        self.threshold.setSuffix(" (0.1-1.0)")
         threshold_layout.addWidget(self.threshold)
         layout.addLayout(threshold_layout)
         
-        # 多选
+        # 多选选项
         self.multi_match = QCheckBox('查找所有匹配')
         layout.addWidget(self.multi_match)
+        
+        # 添加预览区域
+        self.preview_label = QLabel()
+        self.preview_label.setMinimumSize(200, 200)
+        self.preview_label.setAlignment(Qt.AlignCenter)
+        self.preview_label.setStyleSheet("border: 1px solid #ccc;")
+        layout.addWidget(self.preview_label)
+        
+        # 连接信号
+        self.template_path.textChanged.connect(self.update_preview)
         
         # 按钮
         button_layout = QHBoxLayout()
@@ -632,6 +650,16 @@ class FindActionDialog(QDialog):
         
         self.setLayout(layout)
         
+    def update_preview(self):
+        """更新预览图像"""
+        path = self.template_path.text()
+        if path and os.path.exists(path):
+            pixmap = QPixmap(path)
+            scaled_pixmap = pixmap.scaled(200, 200, Qt.KeepAspectRatio)
+            self.preview_label.setPixmap(scaled_pixmap)
+        else:
+            self.preview_label.clear()
+            
     def browse_template(self):
         """浏览选择模板文件"""
         file_path, _ = QFileDialog.getOpenFileName(self, '选择模板文件', '', 'Image Files (*.png *.jpg *.bmp)')
@@ -646,6 +674,7 @@ class FindActionDialog(QDialog):
             'multi_match': self.multi_match.isChecked()
         }
 
+
 class WaitActionDialog(QDialog):
     def __init__(self):
         super().__init__()
@@ -656,15 +685,28 @@ class WaitActionDialog(QDialog):
         self.setWindowTitle('添加等待动作')
         layout = QVBoxLayout()
         
-        # 等待时间
+        # 添加说明
+        info_label = QLabel("等待动作将暂停执行指定的时间")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        layout.addWidget(info_label)
+        
+        # 等待时间设置
         duration_layout = QHBoxLayout()
-        duration_layout.addWidget(QLabel('等待时间(秒):'))
+        duration_layout.addWidget(QLabel('等待时间:'))
         self.duration = QDoubleSpinBox()
         self.duration.setRange(0.1, 60.0)
         self.duration.setSingleStep(0.1)
         self.duration.setValue(1.0)
+        self.duration.setSuffix(" 秒")
+        self.duration.setSpecialValueText("自定义等待时间")
         duration_layout.addWidget(self.duration)
         layout.addLayout(duration_layout)
+        
+        # 添加提示
+        tip_label = QLabel("提示：等待时间范围在0.1秒到60秒之间")
+        tip_label.setStyleSheet("color: #999; font-size: 12px; margin-top: 5px;")
+        layout.addWidget(tip_label)
         
         # 按钮
         button_layout = QHBoxLayout()
@@ -684,6 +726,7 @@ class WaitActionDialog(QDialog):
             'duration': self.duration.value()
         }
 
+
 class LoopActionDialog(QDialog):
     def __init__(self):
         super().__init__()
@@ -694,14 +737,26 @@ class LoopActionDialog(QDialog):
         self.setWindowTitle('添加循环动作')
         layout = QVBoxLayout()
         
-        # 循环次数
+        # 添加说明
+        info_label = QLabel("循环动作将重复执行指定的次数")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        layout.addWidget(info_label)
+        
+        # 循环次数设置
         count_layout = QHBoxLayout()
         count_layout.addWidget(QLabel('循环次数:'))
         self.count = QSpinBox()
         self.count.setRange(1, 999)
         self.count.setValue(1)
+        self.count.setSpecialValueText("自定义循环次数")
         count_layout.addWidget(self.count)
         layout.addLayout(count_layout)
+        
+        # 添加提示
+        tip_label = QLabel("提示：循环次数范围在1到999之间")
+        tip_label.setStyleSheet("color: #999; font-size: 12px; margin-top: 5px;")
+        layout.addWidget(tip_label)
         
         # 按钮
         button_layout = QHBoxLayout()
@@ -722,6 +777,7 @@ class LoopActionDialog(QDialog):
             'actions': []  # 这里可以添加循环内的动作
         }
 
+
 class ConditionActionDialog(QDialog):
     def __init__(self):
         super().__init__()
@@ -732,25 +788,43 @@ class ConditionActionDialog(QDialog):
         self.setWindowTitle('添加条件动作')
         layout = QVBoxLayout()
         
+        # 添加说明
+        info_label = QLabel("条件动作将根据是否找到指定图像来执行不同的操作")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        layout.addWidget(info_label)
+        
         # 模板路径
         path_layout = QHBoxLayout()
         path_layout.addWidget(QLabel('模板路径:'))
         self.template_path = QLineEdit()
+        self.template_path.setPlaceholderText("选择用于判断的图像模板")
         path_layout.addWidget(self.template_path)
         browse_btn = QPushButton('浏览')
         browse_btn.clicked.connect(self.browse_template)
         path_layout.addWidget(browse_btn)
         layout.addLayout(path_layout)
         
-        # 阈值
+        # 阈值设置
         threshold_layout = QHBoxLayout()
         threshold_layout.addWidget(QLabel('匹配阈值:'))
         self.threshold = QDoubleSpinBox()
         self.threshold.setRange(0.1, 1.0)
         self.threshold.setSingleStep(0.1)
         self.threshold.setValue(0.8)
+        self.threshold.setSuffix(" (0.1-1.0)")
         threshold_layout.addWidget(self.threshold)
         layout.addLayout(threshold_layout)
+        
+        # 添加预览区域
+        self.preview_label = QLabel()
+        self.preview_label.setMinimumSize(200, 200)
+        self.preview_label.setAlignment(Qt.AlignCenter)
+        self.preview_label.setStyleSheet("border: 1px solid #ccc;")
+        layout.addWidget(self.preview_label)
+        
+        # 连接信号
+        self.template_path.textChanged.connect(self.update_preview)
         
         # 按钮
         button_layout = QHBoxLayout()
@@ -764,6 +838,16 @@ class ConditionActionDialog(QDialog):
         
         self.setLayout(layout)
         
+    def update_preview(self):
+        """更新预览图像"""
+        path = self.template_path.text()
+        if path and os.path.exists(path):
+            pixmap = QPixmap(path)
+            scaled_pixmap = pixmap.scaled(200, 200, Qt.KeepAspectRatio)
+            self.preview_label.setPixmap(scaled_pixmap)
+        else:
+            self.preview_label.clear()
+            
     def browse_template(self):
         """浏览选择模板文件"""
         file_path, _ = QFileDialog.getOpenFileName(self, '选择模板文件', '', 'Image Files (*.png *.jpg *.bmp)')
@@ -788,35 +872,54 @@ class BatchClickActionDialog(QDialog):
         self.setWindowTitle('添加批量点击动作')
         layout = QVBoxLayout()
         
+        # 添加说明
+        info_label = QLabel("批量点击动作将查找并点击所有匹配的图像位置")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        layout.addWidget(info_label)
+        
         # 模板路径
         path_layout = QHBoxLayout()
         path_layout.addWidget(QLabel('模板路径:'))
         self.template_path = QLineEdit()
+        self.template_path.setPlaceholderText("选择要批量点击的图像模板")
         path_layout.addWidget(self.template_path)
         browse_btn = QPushButton('浏览')
         browse_btn.clicked.connect(self.browse_template)
         path_layout.addWidget(browse_btn)
         layout.addLayout(path_layout)
         
-        # 阈值
+        # 阈值设置
         threshold_layout = QHBoxLayout()
         threshold_layout.addWidget(QLabel('匹配阈值:'))
         self.threshold = QDoubleSpinBox()
         self.threshold.setRange(0.1, 1.0)
         self.threshold.setSingleStep(0.1)
         self.threshold.setValue(0.8)
+        self.threshold.setSuffix(" (0.1-1.0)")
         threshold_layout.addWidget(self.threshold)
         layout.addLayout(threshold_layout)
         
-        # 点击间隔
+        # 点击间隔设置
         interval_layout = QHBoxLayout()
-        interval_layout.addWidget(QLabel('点击间隔(秒):'))
+        interval_layout.addWidget(QLabel('点击间隔:'))
         self.interval = QDoubleSpinBox()
         self.interval.setRange(0.1, 5.0)
         self.interval.setSingleStep(0.1)
         self.interval.setValue(0.5)
+        self.interval.setSuffix(" 秒")
         interval_layout.addWidget(self.interval)
         layout.addLayout(interval_layout)
+        
+        # 添加预览区域
+        self.preview_label = QLabel()
+        self.preview_label.setMinimumSize(200, 200)
+        self.preview_label.setAlignment(Qt.AlignCenter)
+        self.preview_label.setStyleSheet("border: 1px solid #ccc;")
+        layout.addWidget(self.preview_label)
+        
+        # 连接信号
+        self.template_path.textChanged.connect(self.update_preview)
         
         # 按钮
         button_layout = QHBoxLayout()
@@ -830,6 +933,16 @@ class BatchClickActionDialog(QDialog):
         
         self.setLayout(layout)
         
+    def update_preview(self):
+        """更新预览图像"""
+        path = self.template_path.text()
+        if path and os.path.exists(path):
+            pixmap = QPixmap(path)
+            scaled_pixmap = pixmap.scaled(200, 200, Qt.KeepAspectRatio)
+            self.preview_label.setPixmap(scaled_pixmap)
+        else:
+            self.preview_label.clear()
+            
     def browse_template(self):
         """浏览选择模板文件"""
         file_path, _ = QFileDialog.getOpenFileName(self, '选择模板文件', '', 'Image Files (*.png *.jpg *.bmp)')
