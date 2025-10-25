@@ -11,23 +11,23 @@ import os
 from typing import List
 class ThemeManager:
     LIGHT_THEME = {
-        'bg': '#fafafa',                    # 更柔和的背景色
-        'surface': '#ffffff',               # 纯白表面
-        'primary': '#1976d2',               # 更现代的蓝色
-        'primary_variant': '#1565c0',       # 深蓝色变体
-        'secondary': '#7c4dff',            # 紫色作为强调色
+        'bg': '#fafafa',
+        'surface': '#ffffff',
+        'primary': '#1976d2',
+        'primary_variant': '#1565c0',
+        'secondary': '#7c4dff',
         'on_primary': '#ffffff',
         'on_secondary': '#ffffff',
-        'text': '#212121',                  # 深色文字
-        'text_secondary': '#757575',        # 次要文字
-        'text_hint': '#bdbdbd',             # 提示文字
+        'text': '#212121',
+        'text_secondary': '#757575',
+        'text_hint': '#bdbdbd',
         'border': '#e0e0e0',
         'error': '#f44336',
         'warning': '#ff9800',
         'success': '#4caf50',
         'info': '#2196f3',
-        'shadow': 'rgba(0, 0, 0, 0.12)',     # 阴影颜色
-        'divider': '#eeeeee'                # 分割线颜色
+        'shadow': 'rgba(0, 0, 0, 0.12)',
+        'divider': '#eeeeee'
     }
     
     DARK_THEME = {
@@ -79,17 +79,14 @@ class ThemeManager:
                 border-radius: 4px;
                 font-weight: 500;
                 font-size: 14px;
-                transition: all 0.2s ease;
             }}
             
             QPushButton:hover {{
                 background-color: {theme['primary_variant']};
-                transform: translateY(-1px);
             }}
             
             QPushButton:pressed {{
                 background-color: {theme['primary_variant']};
-                transform: translateY(1px);
             }}
             
             QPushButton:disabled {{
@@ -633,7 +630,7 @@ class AutomationWindow(QMainWindow):
         self.animation.setEndValue(1.0)
         self.animation.start()
         
-        # 为按钮添加悬浮动画
+        # 为按钮添加动画效果
         for btn in self.findChildren(QPushButton):
             if btn != self.theme_btn:
                 btn.installEventFilter(self)
@@ -649,17 +646,38 @@ class AutomationWindow(QMainWindow):
         
     def animate_button(self, button, enter):
         """按钮动画效果"""
-        animation = QPropertyAnimation(button, b"geometry")
-        animation.setDuration(200)
+        # 创建颜色动画
+        color_animation = QPropertyAnimation(button, b"color")
+        color_animation.setDuration(200)
+        
+        # 创建几何动画
+        geo_animation = QPropertyAnimation(button, b"geometry")
+        geo_animation.setDuration(200)
+        
         if enter:
+            # 鼠标进入时的动画
             cur_geo = button.geometry()
-            animation.setStartValue(cur_geo)
-            animation.setEndValue(cur_geo.adjusted(-2, -2, 2, 2))
+            geo_animation.setStartValue(cur_geo)
+            geo_animation.setEndValue(cur_geo.adjusted(-2, -2, 2, 2))
+            
+            # 改变按钮颜色
+            if button.styleSheet().contains('primary'):
+                color_animation.setStartValue(ThemeManager.LIGHT_THEME['primary'])
+                color_animation.setEndValue(ThemeManager.LIGHT_THEME['primary_variant'])
         else:
+            # 鼠标离开时的动画
             cur_geo = button.geometry()
-            animation.setStartValue(cur_geo)
-            animation.setEndValue(cur_geo.adjusted(2, 2, -2, -2))
-        animation.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+            geo_animation.setStartValue(cur_geo)
+            geo_animation.setEndValue(cur_geo.adjusted(2, 2, -2, -2))
+            
+            # 恢复按钮颜色
+            if button.styleSheet().contains('primary_variant'):
+                color_animation.setStartValue(ThemeManager.LIGHT_THEME['primary_variant'])
+                color_animation.setEndValue(ThemeManager.LIGHT_THEME['primary'])
+        
+        # 启动动画
+        geo_animation.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
+        color_animation.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 class BaseActionDialog(QDialog):
     """动作对话框基类"""
     def __init__(self, title: str, description: str, parent=None):
