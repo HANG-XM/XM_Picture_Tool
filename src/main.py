@@ -57,8 +57,10 @@ if __name__ == '__main__':
                 window = AutomationWindow()
                 # 显示主窗口
                 window.show()
-                # 延迟关闭启动画面
+                # 延迟关闭启动画面，不使用finish方法
                 QTimer.singleShot(100, splash.close)
+                # 保持对主窗口的引用
+                app.main_window = window
         
         # 每500毫秒更新一次进度
         timer.timeout.connect(update_progress)
