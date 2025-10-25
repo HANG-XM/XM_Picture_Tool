@@ -607,23 +607,59 @@ class BaseActionDialog(QDialog):
 class ParallelActionDialog(BaseActionDialog):
     def __init__(self, parent=None):
         super().__init__('添加并行动作', '并行动作将同时执行多个子动作', parent)
+        self.init_ui()
+        
+    def init_ui(self):
+        # 添加动作列表
+        self.actions_list = QListWidget()
+        self.actions_list.setMaximumHeight(150)
+        self.layout.addWidget(self.actions_list)
+        
+        # 添加动作按钮
+        add_action_btn = QPushButton('添加动作')
+        add_action_btn.clicked.connect(self.add_action)
+        self.layout.addWidget(add_action_btn)
+        
         self.add_action_buttons()
         self.setLayout(self.layout)
         
+    def add_action(self):
+        """添加子动作"""
+        # 这里可以添加子动作选择的逻辑
+        pass
+        
     def get_params(self):
         return {
-            'actions': []
+            'actions': [action.to_dict() for action in self.actions]
         }
 
 class SequenceActionDialog(BaseActionDialog):
     def __init__(self, parent=None):
         super().__init__('添加序列动作', '序列动作将按顺序执行多个子动作', parent)
+        self.init_ui()
+        
+    def init_ui(self):
+        # 添加动作列表
+        self.actions_list = QListWidget()
+        self.actions_list.setMaximumHeight(150)
+        self.layout.addWidget(self.actions_list)
+        
+        # 添加动作按钮
+        add_action_btn = QPushButton('添加动作')
+        add_action_btn.clicked.connect(self.add_action)
+        self.layout.addWidget(add_action_btn)
+        
         self.add_action_buttons()
         self.setLayout(self.layout)
         
+    def add_action(self):
+        """添加子动作"""
+        # 这里可以添加子动作选择的逻辑
+        pass
+        
     def get_params(self):
         return {
-            'actions': []
+            'actions': [action.to_dict() for action in self.actions]
         }
 class TemplateManagerDialog(QDialog):
     """模板管理对话框"""
