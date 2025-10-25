@@ -210,7 +210,7 @@ class AutomationWindow(QMainWindow):
         add_batch_click_action = QAction('添加批量点击', self)
         add_batch_click_action.triggered.connect(self.add_batch_click_action)
         toolbar.addAction(add_batch_click_action)
-        
+
         add_find_action = QAction('添加查找', self)
         add_find_action.triggered.connect(self.add_find_action)
         toolbar.addAction(add_find_action)
@@ -256,18 +256,13 @@ class AutomationWindow(QMainWindow):
         self.load_btn.clicked.connect(self.load_workflow)
         control_layout.addWidget(self.load_btn)
         
-        # 添加切换流程图按钮
-        self.toggle_flowchart_btn = QPushButton('显示流程图')
-        self.toggle_flowchart_btn.clicked.connect(self.toggle_flowchart)
-        control_layout.insertWidget(0, self.toggle_flowchart_btn)
-        
         layout.addLayout(control_layout)
         
         # 添加流程图显示区域
         self.flowchart_view = QWebEngineView()
         self.flowchart_view.setMinimumHeight(200)
         self.flowchart_view.setUrl(QUrl("about:blank"))  # 初始化空白页面
-        self.flowchart_view.setVisible(False)
+        self.flowchart_view.setVisible(True)
         layout.addWidget(self.flowchart_view)
         
         # 添加进度条
@@ -280,16 +275,6 @@ class AutomationWindow(QMainWindow):
         self.log_text.setReadOnly(True)
         layout.addWidget(QLabel('执行日志:'))
         layout.addWidget(self.log_text)
-
-    def toggle_flowchart(self):
-        """切换流程图显示"""
-        if self.flowchart_view.isVisible():
-            self.flowchart_view.setVisible(False)
-            self.toggle_flowchart_btn.setText('显示流程图')
-        else:
-            self.flowchart_view.setVisible(True)
-            self.toggle_flowchart_btn.setText('隐藏流程图')
-            self.update_flowchart()
             
     def update_flowchart(self):
         """更新流程图显示"""
@@ -460,9 +445,7 @@ class AutomationWindow(QMainWindow):
             item.setSizeHint(widget.sizeHint())
             self.action_list.addItem(item)
             self.action_list.setItemWidget(item, widget)
-        # 更新流程图
-        if self.flowchart_view.isVisible():
-            self.update_flowchart()   
+        self.update_flowchart()   
     def remove_action(self, index):
         """删除指定索引的动作"""
         if 0 <= index < len(self.actions):

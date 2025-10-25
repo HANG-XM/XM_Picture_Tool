@@ -89,6 +89,8 @@ class AutomationThread(QThread):
                 
                 if action.type == ActionType.CLICK:
                     self._handle_click(action.params)
+                elif action.type == ActionType.BATCH_CLICK:
+                    self._handle_batch_click(action.params)
                 elif action.type == ActionType.FIND:
                     self._handle_find(action.params)
                 elif action.type == ActionType.WAIT:
