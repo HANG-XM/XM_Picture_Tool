@@ -32,10 +32,13 @@ def enable_high_dpi_support():
 
 if __name__ == '__main__':
     try:
+        # 在创建QApplication之前设置高DPI属性
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+        QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+        
         enable_high_dpi_support()
+        
         app = QApplication(sys.argv)
-        app.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # 启用高DPI缩放
-        app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)  # 使用高DPI图标
         
         # 设置应用程序图标
         app.setWindowIcon(QIcon('icon.ico'))
