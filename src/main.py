@@ -48,7 +48,7 @@ if __name__ == '__main__':
         timer = QTimer()
         
         def update_progress():
-            global progress  # 使用 global 替代 nonlocal
+            global progress
             progress += 20
             splash.set_progress(progress)
             if progress >= 100:
@@ -56,7 +56,8 @@ if __name__ == '__main__':
                 # 创建并显示主窗口
                 window = AutomationWindow()
                 window.show()
-                splash.finish(window)
+                # 延迟100ms后关闭启动画面，确保主窗口完全显示
+                QTimer.singleShot(100, lambda: splash.finish(window))
         
         # 每500毫秒更新一次进度
         timer.timeout.connect(update_progress)
