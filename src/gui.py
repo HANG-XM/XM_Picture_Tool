@@ -485,7 +485,7 @@ class ActionEditor(QWidget):
         dialog = ClickActionDialog()
         if dialog.exec_():
             action = Action(ActionType.CLICK, dialog.get_params())
-            self.action_editor.add_action(action)
+            self.add_action(action)
             self.update_flowchart()           
     def add_find_action(self):
         """添加查找动作"""
