@@ -475,7 +475,7 @@ class ActionEditor(QWidget):
         # 确保场景边界包含所有节点
         self.scene.setSceneRect(self.scene.itemsBoundingRect())
         # 通知主窗口更新
-        if self.parent():
+        if self.parent() and isinstance(self.parent(), AutomationWindow):
             self.parent().actions.append(action)  # 同步到主窗口
             self.parent().update_action_list()
             self.parent().update_flowchart()
