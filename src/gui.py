@@ -1,9 +1,9 @@
 import sys
 import json
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import *
-from PyQt6.QtGui import *
-from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 from actions import Action, ActionType
 from automation import AutomationThread
 from datetime import datetime
@@ -280,7 +280,7 @@ class AutomationWindow(QMainWindow):
     def add_click_action(self):
         """添加点击动作"""
         dialog = ClickActionDialog()
-        if dialog.exec():
+        if dialog.exec_():
             action = Action(ActionType.CLICK, dialog.get_params())
             self.actions.append(action)
             self.action_list.addItem(f"点击: {dialog.template_path.text()}")
