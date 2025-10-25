@@ -476,7 +476,9 @@ class ActionEditor(QWidget):
         self.scene.setSceneRect(self.scene.itemsBoundingRect())
         # 通知主窗口更新
         if self.parent():
+            self.parent().actions.append(action)  # 同步到主窗口
             self.parent().update_action_list()
+            self.parent().update_flowchart()
         return action
     def add_click_action(self):
         """添加点击动作"""
@@ -900,8 +902,6 @@ class AutomationWindow(QMainWindow):
         if dialog.exec_():
             action = Action(ActionType.CLICK, dialog.get_params())
             self.action_editor.add_action(action)
-            self.update_action_list()
-            self.update_flowchart()
 
     def add_find_action(self):
         """添加查找动作"""
@@ -1003,14 +1003,13 @@ class AutomationWindow(QMainWindow):
         self.action_list.clear()
         self.action_list.setVisible(True)
 
-        if not self.actions:
-            # 如果没有动作，显示提示信息
+        if not self.action_editor.actions:  # 使用编辑器的动作列表
             empty_item = QListWidgetItem("暂无动作，请添加动作")
             empty_item.setTextAlignment(Qt.AlignCenter)
             self.action_list.addItem(empty_item)
             return
 
-        for i, action in enumerate(self.actions):
+        for i, action in enumerate(self.action_editor.actions):  # 使用编辑器的动作列表
             item = QListWidgetItem()
             widget = QWidget()
             layout = QHBoxLayout()
