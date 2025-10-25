@@ -843,9 +843,3 @@ class BatchClickActionDialog(QDialog):
             'threshold': self.threshold.value(),
             'interval': self.interval.value()
         }
-
-def main():
-    app = QApplication(sys.argv)
-    window = AutomationWindow()
-    window.show()
-    sys.exit(app.exec())
