@@ -752,9 +752,10 @@ class AutomationWindow(QMainWindow):
 class BaseActionDialog(QDialog):
     """动作对话框基类"""
     def __init__(self, title: str, description: str, parent=None):
-        super().__init__(parent)
+        super().__init__(parent)  # 确保传入parent参数
         self.setWindowTitle(title)
-        self.setFixedSize(400, 300)  # 设置固定大小
+        self.setFixedSize(400, 300)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowCloseButtonHint)  # 设置窗口标志
         self.layout = QVBoxLayout()
         self.layout.setSpacing(8)
         self.layout.setContentsMargins(16, 16, 16, 16)
