@@ -340,7 +340,9 @@ class AutomationWindow(QMainWindow):
         control_layout.setContentsMargins(0, 0, 0, 0)  # 移除边距
         control_container.setLayout(control_layout)
         layout.addWidget(control_container)
-        
+        # 初始化按钮引用
+        self.start_btn = None
+        self.stop_btn = None
         buttons = [
             ('开始执行', self.start_automation, 'primary'),
             ('停止执行', self.stop_automation, 'error'),
@@ -491,52 +493,54 @@ class AutomationWindow(QMainWindow):
         if dialog.exec_():
             action = Action(ActionType.CLICK, dialog.get_params())
             self.actions.append(action)
-            self.action_list.addItem(f"点击: {dialog.template_path.text()}")
+            # 改为调用 update_action_list 而不是直接添加
+            self.update_action_list()
             self.update_flowchart()
-            
+
     def add_find_action(self):
         """添加查找动作"""
         dialog = FindActionDialog()
         if dialog.exec_():
             action = Action(ActionType.FIND, dialog.get_params())
             self.actions.append(action)
-            self.action_list.addItem(f"查找: {dialog.template_path.text()}")
+            self.update_action_list()
             self.update_flowchart()
-            
+
     def add_wait_action(self):
         """添加等待动作"""
         dialog = WaitActionDialog()
         if dialog.exec_():
             action = Action(ActionType.WAIT, dialog.get_params())
             self.actions.append(action)
-            self.action_list.addItem(f"等待: {dialog.duration.value()} 秒")
+            self.update_action_list()
             self.update_flowchart()
-            
+
     def add_loop_action(self):
         """添加循环动作"""
         dialog = LoopActionDialog()
         if dialog.exec_():
             action = Action(ActionType.LOOP, dialog.get_params())
             self.actions.append(action)
-            self.action_list.addItem(f"循环: {dialog.count.value()} 次")
+            self.update_action_list()
             self.update_flowchart()
-            
+
     def add_condition_action(self):
         """添加条件动作"""
         dialog = ConditionActionDialog()
         if dialog.exec_():
             action = Action(ActionType.CONDITION, dialog.get_params())
             self.actions.append(action)
-            self.action_list.addItem(f"条件: {dialog.template_path.text()}")
+            self.update_action_list()
             self.update_flowchart()
+
     def add_batch_click_action(self):
         """添加批量点击动作"""
         dialog = BatchClickActionDialog()
         if dialog.exec_():
             action = Action(ActionType.BATCH_CLICK, dialog.get_params())
             self.actions.append(action)
-            self.action_list.addItem(f"批量点击: {dialog.template_path.text()}")
-            self.update_flowchart()   
+            self.update_action_list()
+            self.update_flowchart()
     def start_automation(self):
         """开始执行自动化流程"""
         if not self.actions:
@@ -591,12 +595,21 @@ class AutomationWindow(QMainWindow):
     def update_action_list(self):
         """更新动作列表显示"""
         self.action_list.clear()
+        self.action_list.setVisible(True)
+
+        if not self.actions:
+            # 如果没有动作，显示提示信息
+            empty_item = QListWidgetItem("暂无动作，请添加动作")
+            empty_item.setTextAlignment(Qt.AlignCenter)
+            self.action_list.addItem(empty_item)
+            return
+
         for i, action in enumerate(self.actions):
             item = QListWidgetItem()
             widget = QWidget()
             layout = QHBoxLayout()
-            layout.setContentsMargins(5, 8, 5, 8)  # 增加上下边距
-            layout.setSpacing(10)  # 增加元素间距
+            layout.setContentsMargins(5, 8, 5, 8)
+            layout.setSpacing(10)
             
             # 添加序号
             num_label = QLabel(f"{i+1}.")
@@ -607,10 +620,11 @@ class AutomationWindow(QMainWindow):
             icon_label = QLabel()
             icons = {
                 ActionType.CLICK: "👆",
-                ActionType.FIND: "🔍",
+                ActionType.FIND: "🔍", 
                 ActionType.WAIT: "⏰",
                 ActionType.LOOP: "🔄",
-                ActionType.CONDITION: "❓"
+                ActionType.CONDITION: "❓",
+                ActionType.BATCH_CLICK: "👆👆"  # 添加批量点击图标
             }
             icon_label.setText(icons.get(action.type, "📌"))
             icon_label.setStyleSheet("min-width: 20px;")
@@ -619,24 +633,32 @@ class AutomationWindow(QMainWindow):
             # 添加动作描述
             desc_label = QLabel()
             if action.type == ActionType.CLICK:
-                desc_label.setText(f"点击: {os.path.basename(action.params['template_path'])}")
+                template_path = action.params.get('template_path', '未知')
+                desc_label.setText(f"点击: {os.path.basename(template_path)}")
             elif action.type == ActionType.FIND:
-                desc_label.setText(f"查找: {os.path.basename(action.params['template_path'])}")
+                template_path = action.params.get('template_path', '未知')
+                desc_label.setText(f"查找: {os.path.basename(template_path)}")
             elif action.type == ActionType.WAIT:
-                desc_label.setText(f"等待: {action.params['duration']} 秒")
+                duration = action.params.get('duration', 0)
+                desc_label.setText(f"等待: {duration} 秒")
             elif action.type == ActionType.LOOP:
-                desc_label.setText(f"循环: {action.params['count']} 次")
+                count = action.params.get('count', 0)
+                desc_label.setText(f"循环: {count} 次")
             elif action.type == ActionType.CONDITION:
-                desc_label.setText(f"条件: {os.path.basename(action.params['template_path'])}")
+                template_path = action.params.get('template_path', '未知')
+                desc_label.setText(f"条件: {os.path.basename(template_path)}")
+            elif action.type == ActionType.BATCH_CLICK:
+                template_path = action.params.get('template_path', '未知')
+                desc_label.setText(f"批量点击: {os.path.basename(template_path)}")
             desc_label.setStyleSheet("padding: 0 10px;")
             layout.addWidget(desc_label)
             
             # 添加弹性空间
             layout.addStretch()
             
-            # 添加删除按钮
+            # 添加删除按钮 - 修复lambda作用域问题
             delete_btn = QPushButton("×")
-            delete_btn.setFixedSize(28, 28)  # 增大按钮尺寸
+            delete_btn.setFixedSize(28, 28)
             delete_btn.setStyleSheet("""
                 QPushButton {
                     background: #ff4444;
@@ -650,13 +672,15 @@ class AutomationWindow(QMainWindow):
                     background: #cc0000;
                 }
             """)
-            delete_btn.clicked.connect(lambda: self.remove_action(i))
+            # 使用闭包解决lambda变量绑定问题
+            delete_btn.clicked.connect(lambda checked, index=i: self.remove_action(index))
             layout.addWidget(delete_btn)
             
             widget.setLayout(layout)
-            item.setSizeHint(QSize(item.sizeHint().width(), 40))  # 设置最小高度
+            item.setSizeHint(QSize(item.sizeHint().width(), 40))
             self.action_list.addItem(item)
             self.action_list.setItemWidget(item, widget)
+        
         self.update_flowchart()
 
     def remove_action(self, index):
