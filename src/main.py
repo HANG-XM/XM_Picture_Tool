@@ -49,7 +49,7 @@ if __name__ == '__main__':
         
         def update_progress():
             global progress
-            progress += 20
+            progress += 25  # 增加每次进度的增量
             splash.set_progress(progress)
             if progress >= 100:
                 timer.stop()
@@ -61,11 +61,11 @@ if __name__ == '__main__':
                 QTimer.singleShot(100, splash.close)
                 # 保持对主窗口的引用
                 app.main_window = window
-        
-        # 每500毫秒更新一次进度
+
+        # 每300毫秒更新一次进度，加快加载速度
         timer.timeout.connect(update_progress)
-        timer.start(500)
-        
+        timer.start(300)
+                
         # 设置应用程序图标
         app.setWindowIcon(QIcon('icon.ico'))
         

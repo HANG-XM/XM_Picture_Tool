@@ -20,8 +20,8 @@ class SplashScreen(QSplashScreen):
         
         # 创建主布局
         layout = QVBoxLayout()
-        layout.setSpacing(20)
-        layout.setContentsMargins(40, 40, 40, 40)
+        layout.setSpacing(15)  # 减小间距
+        layout.setContentsMargins(30, 30, 30, 30)  # 减小边距
         
         # 添加应用标题
         title_label = QLabel("自动化工具")
@@ -31,7 +31,7 @@ class SplashScreen(QSplashScreen):
                 color: #1976d2;
                 font-size: 24px;
                 font-weight: bold;
-                margin: 20px 0;
+                margin: 10px 0;
             }
         """)
         layout.addWidget(title_label)
@@ -39,6 +39,7 @@ class SplashScreen(QSplashScreen):
         # 创建加载动画容器
         animation_container = QWidget()
         animation_layout = QVBoxLayout()
+        animation_layout.setSpacing(5)
         
         # 创建加载动画
         self.movie = QMovie("loading.gif")
@@ -51,11 +52,12 @@ class SplashScreen(QSplashScreen):
         # 添加加载文字
         self.loading_label = QLabel("正在加载...")
         self.loading_label.setAlignment(Qt.AlignCenter)
+        self.loading_label.setWordWrap(True)  # 允许文字换行
         self.loading_label.setStyleSheet("""
             QLabel {
                 color: #666;
                 font-size: 14px;
-                margin: 10px 0;
+                margin: 5px 0;
             }
         """)
         animation_layout.addWidget(self.loading_label)
@@ -82,7 +84,7 @@ class SplashScreen(QSplashScreen):
             QLabel {
                 color: #999;
                 font-size: 12px;
-                margin-top: 10px;
+                margin-top: 5px;
             }
         """)
         progress_layout.addWidget(version_label)
