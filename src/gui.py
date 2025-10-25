@@ -438,8 +438,9 @@ class ActionEditor(QWidget):
         self.canvas = QGraphicsView()
         self.scene = QGraphicsScene()
         self.canvas.setScene(self.scene)
-        # 设置场景大小
-        self.scene.setSceneRect(0, 0, 800, 200)
+        # 设置场景大小和滚动条
+        self.canvas.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.canvas.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         layout.addWidget(self.canvas)
         
         # 工具栏
@@ -463,6 +464,7 @@ class ActionEditor(QWidget):
             
         layout.addWidget(toolbar)
         self.setLayout(layout)
+
     def add_action(self, action: Action):
         """添加动作到编辑器"""
         self.actions.append(action)
@@ -470,14 +472,19 @@ class ActionEditor(QWidget):
         # 设置节点位置
         node.setPos(len(self.actions) * 160, 0)
         self.scene.addItem(node)
+        # 确保场景边界包含所有节点
         self.scene.setSceneRect(self.scene.itemsBoundingRect())
+        # 通知主窗口更新
+        if self.parent():
+            self.parent().update_action_list()
         return action
     def add_click_action(self):
         """添加点击动作"""
         dialog = ClickActionDialog()
         if dialog.exec_():
             action = Action(ActionType.CLICK, dialog.get_params())
-            return self.add_action(action)            
+            self.action_editor.add_action(action)
+            self.update_flowchart()           
     def add_find_action(self):
         """添加查找动作"""
         dialog = FindActionDialog()
