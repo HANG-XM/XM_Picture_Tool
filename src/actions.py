@@ -1,13 +1,20 @@
 from typing import List, Dict, Any, Optional
 import os
-
+import json
 class ActionType:
+    # 基础动作
     CLICK = "click"
     FIND = "find"
     WAIT = "wait"
+    
+    # 流程控制
     LOOP = "loop"
     CONDITION = "condition"
-    BATCH_CLICK = "batch_click"
+    PARALLEL = "parallel"  # 新增并行执行
+    
+    # 复合动作
+    SEQUENCE = "sequence"  # 新增动作序列
+    CUSTOM = "custom"      # 新增自定义动作
 
 class Action:
     def __init__(self, type: str, params: dict):
@@ -29,6 +36,10 @@ class Action:
             return f"循环执行 {self.params.get('count', 0)} 次"
         elif self.type == ActionType.CONDITION:
             return f"条件判断: {self.params.get('template_path', '')}"
+        elif self.type == ActionType.PARALLEL:
+            return f"并行执行 {len(self.params.get('actions', []))} 个动作"
+        elif self.type == ActionType.SEQUENCE:
+            return f"顺序执行 {len(self.params.get('actions', []))} 个动作"
         return "未知动作"
 
     def to_dict(self) -> Dict[str, Any]:
@@ -61,4 +72,30 @@ class Action:
                 return "缺少循环次数"
             if self.params['count'] <= 0:
                 return "循环次数必须大于0"
+        elif self.type == ActionType.PARALLEL or self.type == ActionType.SEQUENCE:
+            if 'actions' not in self.params:
+                return "缺少动作列表"
+            if not isinstance(self.params['actions'], list):
+                return "动作列表必须是数组"
         return None
+class ActionTemplate:
+    """动作模板类，用于保存可重用的动作组合"""
+    def __init__(self, name: str, actions: List[Action], description: str = ""):
+        self.name = name
+        self.actions = actions
+        self.description = description
+        
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'name': self.name,
+            'description': self.description,
+            'actions': [action.to_dict() for action in self.actions]
+        }
+    
+    @staticmethod
+    def from_dict(data: Dict[str, Any]) -> 'ActionTemplate':
+        return ActionTemplate(
+            data['name'],
+            [Action.from_dict(action_data) for action_data in data['actions']],
+            data.get('description', '')
+        )

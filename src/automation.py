@@ -6,7 +6,8 @@ import logging
 from typing import List, Tuple, Optional
 from PyQt5.QtCore import QThread, pyqtSignal
 from actions import Action, ActionType
-
+import os
+import json
 class ImageMatcher:
     @staticmethod
     def find_template(template_path: str, threshold: float = 0.8, region: Optional[Tuple[int, int, int, int]] = None) -> Optional[Tuple[int, int]]:
@@ -99,6 +100,10 @@ class AutomationThread(QThread):
                     self._handle_loop(action.params)
                 elif action.type == ActionType.CONDITION:
                     self._handle_condition(action.params)
+                elif action.type == ActionType.PARALLEL:
+                    self._handle_parallel(action.params)
+                elif action.type == ActionType.SEQUENCE:
+                    self._handle_sequence(action.params)
                     
                 self.log_signal.emit(f"动作完成: {action.description}", "success")
                 
@@ -200,6 +205,48 @@ class AutomationThread(QThread):
                 self.log_signal.emit(f"点击位置: {position}")
         else:
             self.log_signal.emit(f"未找到图像: {template_path}")   
+    def _handle_parallel(self, params):
+        """处理并行动作"""
+        actions = params.get('actions', [])
+        executor = ParallelExecutor()
+        executor.execute(actions)
+        
+    def _handle_sequence(self, params):
+        """处理序列动作"""
+        actions = params.get('actions', [])
+        for action in actions:
+            if not self.running:
+                break
+            if action.type == ActionType.CLICK:
+                self._handle_click(action.params)
+            elif action.type == ActionType.FIND:
+                self._handle_find(action.params)
+            elif action.type == ActionType.WAIT:
+                self._handle_wait(action.params)
     def stop(self):
         """停止执行"""
         self.running = False
+class ParallelExecutor:
+    """并行执行器"""
+    def __init__(self):
+        self.threads = []
+        self.log_signal = pyqtSignal(str, str)
+        self.progress_signal = pyqtSignal(int)
+        
+    def execute(self, actions: List[Action]):
+        """并行执行多个动作"""
+        for action in actions:
+            thread = AutomationThread([action])
+            thread.log_signal.connect(self.log_signal)
+            thread.progress_signal.connect(self.progress_signal)
+            self.threads.append(thread)
+            thread.start()
+            
+        # 等待所有线程完成
+        for thread in self.threads:
+            thread.wait()
+            
+    def stop(self):
+        """停止所有执行线程"""
+        for thread in self.threads:
+            thread.stop()

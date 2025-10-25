@@ -1,14 +1,14 @@
 import sys
+import os
 import json
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from actions import Action, ActionType
+from actions import Action, ActionType, ActionTemplate
 from automation import AutomationThread
 from datetime import datetime
-import os
-from typing import List
+from typing import List, Dict, Any, Optional
 class SplashScreen(QSplashScreen):
     """启动画面"""
     def __init__(self):
@@ -285,12 +285,337 @@ class FlowchartGenerator:
         </html>
         """
         return html
+class TemplateManager:
+    """动作模板管理器"""
+    def __init__(self):
+        self.templates = {}
+        self.template_dir = "templates"
+        if not os.path.exists(self.template_dir):
+            os.makedirs(self.template_dir)
+            
+    def save_template(self, template: ActionTemplate):
+        """保存动作模板"""
+        self.templates[template.name] = template
+        file_path = os.path.join(self.template_dir, f"{template.name}.json")
+        with open(file_path, 'w') as f:
+            json.dump(template.to_dict(), f)
+            
+    def load_template(self, name: str) -> Optional[ActionTemplate]:
+        """加载动作模板"""
+        if name in self.templates:
+            return self.templates[name]
+            
+        file_path = os.path.join(self.template_dir, f"{name}.json")
+        if os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                template = ActionTemplate.from_dict(json.load(f))
+                self.templates[name] = template
+                return template
+        return None
+        
+    def list_templates(self) -> List[str]:
+        """列出所有模板"""
+        templates = []
+        for file in os.listdir(self.template_dir):
+            if file.endswith('.json'):
+                templates.append(file[:-5])
+        return templates
+
+class ActionNode(QGraphicsItem):
+    """动作节点类"""
+    def __init__(self, action_type: str, params: Dict[str, Any]):
+        super().__init__()
+        self.action_type = action_type
+        self.params = params
+        self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.setFlag(QGraphicsItem.ItemIsSelectable)
+        
+    def boundingRect(self) -> QRectF:
+        return QRectF(0, 0, 150, 80)
+        
+    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget):
+        # 绘制节点
+        painter.setBrush(Qt.white)
+        painter.setPen(Qt.black)
+        painter.drawRoundedRect(0, 0, 150, 80, 10, 10)
+        
+        # 绘制文本
+        painter.drawText(10, 20, self.action_type)
+        painter.drawText(10, 40, str(self.params)[:20])
+
+class ActionEditor(QWidget):
+    """动作可视化编辑器"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.init_ui()
+        
+    def init_ui(self):
+        layout = QVBoxLayout()
+        
+        # 动作画布
+        self.canvas = QGraphicsView()
+        self.scene = QGraphicsScene()
+        self.canvas.setScene(self.scene)
+        layout.addWidget(self.canvas)
+        
+        # 工具栏
+        toolbar = QToolBar()
+        
+        # 添加基础动作按钮
+        actions = [
+            ("点击", self.add_click_action),
+            ("查找", self.add_find_action),
+            ("等待", self.add_wait_action),
+            ("循环", self.add_loop_action),
+            ("条件", self.add_condition_action),
+            ("并行", self.add_parallel_action),
+            ("序列", self.add_sequence_action)
+        ]
+        
+        for text, handler in actions:
+            btn = QPushButton(text)
+            btn.clicked.connect(handler)
+            toolbar.addWidget(btn)
+            
+        layout.addWidget(toolbar)
+        self.setLayout(layout)
+        
+    def add_click_action(self):
+        dialog = ClickActionDialog()
+        if dialog.exec_():
+            node = ActionNode(ActionType.CLICK, dialog.get_params())
+            self.scene.addItem(node)
+            
+    def add_find_action(self):
+        dialog = FindActionDialog()
+        if dialog.exec_():
+            node = ActionNode(ActionType.FIND, dialog.get_params())
+            self.scene.addItem(node)
+            
+    def add_wait_action(self):
+        dialog = WaitActionDialog()
+        if dialog.exec_():
+            node = ActionNode(ActionType.WAIT, dialog.get_params())
+            self.scene.addItem(node)
+            
+    def add_loop_action(self):
+        dialog = LoopActionDialog()
+        if dialog.exec_():
+            node = ActionNode(ActionType.LOOP, dialog.get_params())
+            self.scene.addItem(node)
+            
+    def add_condition_action(self):
+        dialog = ConditionActionDialog()
+        if dialog.exec_():
+            node = ActionNode(ActionType.CONDITION, dialog.get_params())
+            self.scene.addItem(node)
+            
+    def add_parallel_action(self):
+        dialog = ParallelActionDialog()
+        if dialog.exec_():
+            node = ActionNode(ActionType.PARALLEL, dialog.get_params())
+            self.scene.addItem(node)
+            
+    def add_sequence_action(self):
+        dialog = SequenceActionDialog()
+        if dialog.exec_():
+            node = ActionNode(ActionType.SEQUENCE, dialog.get_params())
+            self.scene.addItem(node)
+class BaseActionDialog(QDialog):
+    """动作对话框基类"""
+    def __init__(self, title: str, description: str, parent=None):
+        super().__init__(parent)  # 确保传入parent参数
+        self.setWindowTitle(title)
+        self.setFixedSize(400, 300)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowCloseButtonHint)  # 设置窗口标志
+        self.layout = QVBoxLayout()
+        self.layout.setSpacing(8)
+        self.layout.setContentsMargins(16, 16, 16, 16)
+        
+        # 添加说明
+        info_label = QLabel(description)
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: #666; margin-bottom: 8px;")
+        self.layout.addWidget(info_label)
+        
+        # 添加预览区域（可选）
+        self.preview_label = None
+        
+    def add_template_selection(self, placeholder: str = "选择图像模板"):
+        """添加模板选择组件"""
+        path_layout = QHBoxLayout()
+        path_layout.addWidget(QLabel('模板路径:'))
+        self.template_path = QLineEdit()
+        self.template_path.setPlaceholderText(placeholder)
+        path_layout.addWidget(self.template_path)
+        browse_btn = QPushButton('浏览')
+        browse_btn.clicked.connect(self.browse_template)
+        path_layout.addWidget(browse_btn)
+        self.layout.addLayout(path_layout)
+        
+    def add_threshold_selection(self):
+        """添加阈值选择组件"""
+        threshold_layout = QHBoxLayout()
+        threshold_layout.addWidget(QLabel('匹配阈值:'))
+        self.threshold = QDoubleSpinBox()
+        self.threshold.setRange(0.1, 1.0)
+        self.threshold.setSingleStep(0.1)
+        self.threshold.setValue(0.8)
+        self.threshold.setSuffix(" (0.1-1.0)")
+        threshold_layout.addWidget(self.threshold)
+        self.layout.addLayout(threshold_layout)
+        
+    def add_preview_area(self):
+        """添加预览区域"""
+        self.preview_label = QLabel()
+        self.preview_label.setMinimumSize(200, 200)
+        self.preview_label.setAlignment(Qt.AlignCenter)
+        self.preview_label.setStyleSheet("border: 1px solid #ccc;")
+        self.layout.addWidget(self.preview_label)
+        
+        if hasattr(self, 'template_path'):
+            self.template_path.textChanged.connect(self.update_preview)
+            
+    def add_action_buttons(self):
+        """添加确定/取消按钮"""
+        button_layout = QHBoxLayout()
+        ok_btn = QPushButton('确定')
+        ok_btn.clicked.connect(self.accept)
+        button_layout.addWidget(ok_btn)
+        cancel_btn = QPushButton('取消')
+        cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_btn)
+        self.layout.addLayout(button_layout)
+        
+    def update_preview(self):
+        """更新预览图像"""
+        if not self.preview_label or not hasattr(self, 'template_path'):
+            return
+            
+        path = self.template_path.text()
+        if path and os.path.exists(path):
+            pixmap = QPixmap(path)
+            scaled_pixmap = pixmap.scaled(200, 200, Qt.KeepAspectRatio)
+            self.preview_label.setPixmap(scaled_pixmap)
+        else:
+            self.preview_label.clear()
+            
+    def browse_template(self):
+        """浏览选择模板文件"""
+        file_path, _ = QFileDialog.getOpenFileName(self, '选择模板文件', '', 'Image Files (*.png *.jpg *.bmp)')
+        if file_path and hasattr(self, 'template_path'):
+            self.template_path.setText(file_path)
+            
+    def get_common_params(self):
+        """获取公共参数"""
+        params = {}
+        if hasattr(self, 'template_path'):
+            params['template_path'] = self.template_path.text()
+        if hasattr(self, 'threshold'):
+            params['threshold'] = self.threshold.value()
+        return params
+class ParallelActionDialog(BaseActionDialog):
+    def __init__(self, parent=None):
+        super().__init__('添加并行动作', '并行动作将同时执行多个子动作', parent)
+        self.add_action_buttons()
+        self.setLayout(self.layout)
+        
+    def get_params(self):
+        return {
+            'actions': []
+        }
+
+class SequenceActionDialog(BaseActionDialog):
+    def __init__(self, parent=None):
+        super().__init__('添加序列动作', '序列动作将按顺序执行多个子动作', parent)
+        self.add_action_buttons()
+        self.setLayout(self.layout)
+        
+    def get_params(self):
+        return {
+            'actions': []
+        }
+class TemplateManagerDialog(QDialog):
+    """模板管理对话框"""
+    def __init__(self, template_manager: TemplateManager, parent=None):
+        super().__init__(parent)
+        self.template_manager = template_manager
+        self.init_ui()
+        
+    def init_ui(self):
+        self.setWindowTitle('模板管理')
+        self.setFixedSize(600, 400)
+        
+        layout = QVBoxLayout()
+        
+        # 模板列表
+        self.template_list = QListWidget()
+        self.refresh_template_list()
+        layout.addWidget(self.template_list)
+        
+        # 按钮区域
+        button_layout = QHBoxLayout()
+        
+        delete_btn = QPushButton('删除')
+        delete_btn.clicked.connect(self.delete_template)
+        button_layout.addWidget(delete_btn)
+        
+        rename_btn = QPushButton('重命名')
+        rename_btn.clicked.connect(self.rename_template)
+        button_layout.addWidget(rename_btn)
+        
+        button_layout.addStretch()
+        
+        close_btn = QPushButton('关闭')
+        close_btn.clicked.connect(self.accept)
+        button_layout.addWidget(close_btn)
+        
+        layout.addLayout(button_layout)
+        self.setLayout(layout)
+        
+    def refresh_template_list(self):
+        """刷新模板列表"""
+        self.template_list.clear()
+        templates = self.template_manager.list_templates()
+        self.template_list.addItems(templates)
+        
+    def delete_template(self):
+        """删除选中的模板"""
+        current_item = self.template_list.currentItem()
+        if current_item:
+            template_name = current_item.text()
+            reply = QMessageBox.question(self, '确认删除', f'确定要删除模板 "{template_name}" 吗？')
+            if reply == QMessageBox.Yes:
+                file_path = os.path.join(self.template_manager.template_dir, f"{template_name}.json")
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                self.refresh_template_list()
+                
+    def rename_template(self):
+        """重命名选中的模板"""
+        current_item = self.template_list.currentItem()
+        if current_item:
+            old_name = current_item.text()
+            new_name, ok = QInputDialog.getText(self, '重命名', '请输入新名称:', text=old_name)
+            if ok and new_name and new_name != old_name:
+                # 加载旧模板
+                template = self.template_manager.load_template(old_name)
+                if template:
+                    # 删除旧文件
+                    old_path = os.path.join(self.template_manager.template_dir, f"{old_name}.json")
+                    if os.path.exists(old_path):
+                        os.remove(old_path)
+                    # 保存新模板
+                    template.name = new_name
+                    self.template_manager.save_template(template)
+                    self.refresh_template_list()
 class AutomationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.actions = []
         self.automation_thread = None
         self.is_dark_mode = False
+        self.template_manager = TemplateManager()
         self.init_ui()
         self.setup_status_bar()
         self.add_animation_effects()
@@ -324,34 +649,27 @@ class AutomationWindow(QMainWindow):
         
     def init_ui(self):
         """初始化用户界面"""
-        # 设置现代风格
         self.setStyleSheet(ThemeManager.get_stylesheet(ThemeManager.LIGHT_THEME))
-        
         self.setWindowTitle('可视化自动化工具')
-        self.setGeometry(100, 100, 900, 600)  # 调整默认窗口大小为更合理的尺寸
+        self.setGeometry(100, 100, 1200, 800)
         
-        # 创建中心部件和布局
+        # 创建中心部件
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout()
-        layout.setSpacing(12)  # 减小间距
-        layout.setContentsMargins(16, 16, 16, 16)  # 减小边距
         central_widget.setLayout(layout)
         
         # 创建工具栏
         toolbar = QToolBar()
         toolbar.setMovable(False)
-        toolbar.setIconSize(QSize(20, 20))  # 减小图标尺寸
         self.addToolBar(toolbar)
         
         # 添加动作按钮
         actions = [
-            ('添加点击', self.add_click_action),
-            ('添加批量点击', self.add_batch_click_action),
-            ('添加查找', self.add_find_action),
-            ('添加等待', self.add_wait_action),
-            ('添加循环', self.add_loop_action),
-            ('添加条件', self.add_condition_action)
+            ('开始执行', self.start_automation),
+            ('停止执行', self.stop_automation),
+            ('保存流程', self.save_workflow),
+            ('加载流程', self.load_workflow)
         ]
         
         for text, handler in actions:
@@ -359,160 +677,35 @@ class AutomationWindow(QMainWindow):
             action.triggered.connect(handler)
             toolbar.addAction(action)
             
-        # 添加分隔符
-        toolbar.addSeparator()
+        # 添加模板管理工具栏
+        template_toolbar = QToolBar()
+        template_toolbar.addAction("保存模板", self.save_template)
+        template_toolbar.addAction("加载模板", self.load_template)
+        template_toolbar.addAction("模板管理", self.show_template_manager)
+        self.addToolBar(template_toolbar)
         
-        # 创建动作列表区域
-        list_container = QWidget()
-        list_container.setMaximumHeight(180)  # 限制最大高度
-        list_layout = QVBoxLayout()
-        list_layout.setSpacing(6)
-        
-        list_header = QLabel('动作列表')
-        list_header.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 2px;")
-        list_layout.addWidget(list_header)
-        
-        self.action_list = QListWidget()
-        self.action_list.setMaximumHeight(150)  # 限制列表高度
-        list_layout.addWidget(self.action_list)
-        
-        list_container.setLayout(list_layout)
-        layout.addWidget(list_container)
-        
-        # 创建控制按钮区域
-        control_container = QWidget()
-        control_container.setMaximumHeight(40)  # 限制最大高度
-        control_layout = QHBoxLayout()
-        control_layout.setSpacing(8)
-        control_layout.setContentsMargins(0, 0, 0, 0)  # 移除边距
-        control_container.setLayout(control_layout)
-        layout.addWidget(control_container)
-        # 初始化按钮引用
-        self.start_btn = None
-        self.stop_btn = None
-        buttons = [
-            ('开始执行', self.start_automation, 'primary'),
-            ('停止执行', self.stop_automation, 'error'),
-            ('清除所有', self.clear_actions, 'warning'),
-            ('保存流程', self.save_workflow, 'success'),
-            ('加载流程', self.load_workflow, 'info')
-        ]
-        
-        for text, handler, style_type in buttons:
-            btn = QPushButton(text)
-            btn.setMaximumHeight(32)  # 限制按钮高度
-            btn.clicked.connect(handler)
-            
-            # 保存按钮类型
-            btn.setProperty("style_type", style_type)
-            
-            # 设置按钮样式
-            if style_type == 'primary':
-                btn.setStyleSheet(f"""
-                    QPushButton {{
-                        background-color: {ThemeManager.LIGHT_THEME['primary']};
-                        color: {ThemeManager.LIGHT_THEME['on_primary']};
-                        border: none;
-                        padding: 4px 12px;
-                        border-radius: 4px;
-                        font-weight: 500;
-                    }}
-                    QPushButton:hover {{
-                        background-color: {ThemeManager.LIGHT_THEME['primary_variant']};
-                    }}
-                    QPushButton:pressed {{
-                        background-color: {ThemeManager.LIGHT_THEME['primary_variant']};
-                    }}
-                """)
-            elif style_type == 'error':
-                btn.setStyleSheet(f"""
-                    QPushButton {{
-                        background-color: {ThemeManager.LIGHT_THEME['error']};
-                        color: white;
-                        border: none;
-                        padding: 4px 12px;
-                        border-radius: 4px;
-                        font-weight: 500;
-                    }}
-                    QPushButton:hover {{
-                        background-color: {ThemeManager.LIGHT_THEME['error']};
-                        opacity: 0.8;
-                    }}
-                    QPushButton:pressed {{
-                        background-color: {ThemeManager.LIGHT_THEME['error']};
-                        opacity: 0.6;
-                    }}
-                """)
-            elif style_type == 'warning':
-                btn.setStyleSheet(f"""
-                    QPushButton {{
-                        background-color: {ThemeManager.LIGHT_THEME['warning']};
-                        color: white;
-                        border: none;
-                        padding: 4px 12px;
-                        border-radius: 4px;
-                        font-weight: 500;
-                    }}
-                    QPushButton:hover {{
-                        background-color: {ThemeManager.LIGHT_THEME['warning']};
-                        opacity: 0.8;
-                    }}
-                    QPushButton:pressed {{
-                        background-color: {ThemeManager.LIGHT_THEME['warning']};
-                        opacity: 0.6;
-                    }}
-                """)
-            elif style_type == 'success':
-                btn.setStyleSheet(f"""
-                    QPushButton {{
-                        background-color: {ThemeManager.LIGHT_THEME['success']};
-                        color: white;
-                        border: none;
-                        padding: 4px 12px;
-                        border-radius: 4px;
-                        font-weight: 500;
-                    }}
-                    QPushButton:hover {{
-                        background-color: {ThemeManager.LIGHT_THEME['success']};
-                        opacity: 0.8;
-                    }}
-                    QPushButton:pressed {{
-                        background-color: {ThemeManager.LIGHT_THEME['success']};
-                        opacity: 0.6;
-                    }}
-                """)
-            
-            # 确保按钮可见
-            btn.show()
-            control_layout.addWidget(btn)
-        layout.addWidget(control_container)
-        
-        # 添加流程图显示区域
-        flowchart_container = QWidget()
-        flowchart_container.setMaximumHeight(180)  # 限制最大高度
-        flowchart_layout = QVBoxLayout()
-        flowchart_layout.setSpacing(6)
-        
-        flowchart_header = QLabel('流程图')
-        flowchart_header.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 2px;")
-        flowchart_layout.addWidget(flowchart_header)
-        
+        # 创建动作编辑器
+        self.action_editor = ActionEditor()
+        layout.addWidget(self.action_editor)
+        # 创建流程图视图
         self.flowchart_view = QWebEngineView()
-        self.flowchart_view.setMaximumHeight(150)  # 限制高度
-        self.flowchart_view.setUrl(QUrl("about:blank"))
-        self.flowchart_view.setVisible(True)
-        flowchart_layout.addWidget(self.flowchart_view)
-        
-        flowchart_container.setLayout(flowchart_layout)
-        layout.addWidget(flowchart_container)
-        
-        # 添加进度条
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setMaximumHeight(24)  # 限制进度条高度
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setTextVisible(True)
-        layout.addWidget(self.progress_bar)
-        
+        self.flowchart_view.setMaximumHeight(150)
+        layout.addWidget(self.flowchart_view)
+
+        # 创建动作列表
+        self.action_list = QListWidget()
+        self.action_list.setMaximumHeight(150)
+        layout.addWidget(self.action_list)
+
+        # 创建开始和停止按钮
+        self.start_btn = QPushButton('开始执行')
+        self.start_btn.clicked.connect(self.start_automation)
+        layout.addWidget(self.start_btn)
+
+        self.stop_btn = QPushButton('停止执行')
+        self.stop_btn.clicked.connect(self.stop_automation)
+        self.stop_btn.setEnabled(False)
+        layout.addWidget(self.stop_btn)        
         # 创建日志输出区域
         log_container = QWidget()
         log_layout = QVBoxLayout()
@@ -523,12 +716,20 @@ class AutomationWindow(QMainWindow):
         log_layout.addWidget(log_header)
         
         self.log_text = QTextEdit()
-        self.log_text.setMaximumHeight(120)  # 限制日志区域高度
+        self.log_text.setMaximumHeight(120)
         self.log_text.setReadOnly(True)
         log_layout.addWidget(self.log_text)
         
         log_container.setLayout(log_layout)
         layout.addWidget(log_container)
+        
+        # 添加进度条
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setMaximumHeight(24)
+        self.progress_bar.setVisible(False)
+        self.progress_bar.setTextVisible(True)
+        layout.addWidget(self.progress_bar)
+
     def update_flowchart(self):
         """更新流程图显示"""
         if self.actions:
@@ -796,99 +997,47 @@ class AutomationWindow(QMainWindow):
         
         # 启动动画
         geo_animation.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
-class BaseActionDialog(QDialog):
-    """动作对话框基类"""
-    def __init__(self, title: str, description: str, parent=None):
-        super().__init__(parent)  # 确保传入parent参数
-        self.setWindowTitle(title)
-        self.setFixedSize(400, 300)
-        self.setWindowFlags(Qt.Dialog | Qt.WindowCloseButtonHint)  # 设置窗口标志
-        self.layout = QVBoxLayout()
-        self.layout.setSpacing(8)
-        self.layout.setContentsMargins(16, 16, 16, 16)
-        
-        # 添加说明
-        info_label = QLabel(description)
-        info_label.setWordWrap(True)
-        info_label.setStyleSheet("color: #666; margin-bottom: 8px;")
-        self.layout.addWidget(info_label)
-        
-        # 添加预览区域（可选）
-        self.preview_label = None
-        
-    def add_template_selection(self, placeholder: str = "选择图像模板"):
-        """添加模板选择组件"""
-        path_layout = QHBoxLayout()
-        path_layout.addWidget(QLabel('模板路径:'))
-        self.template_path = QLineEdit()
-        self.template_path.setPlaceholderText(placeholder)
-        path_layout.addWidget(self.template_path)
-        browse_btn = QPushButton('浏览')
-        browse_btn.clicked.connect(self.browse_template)
-        path_layout.addWidget(browse_btn)
-        self.layout.addLayout(path_layout)
-        
-    def add_threshold_selection(self):
-        """添加阈值选择组件"""
-        threshold_layout = QHBoxLayout()
-        threshold_layout.addWidget(QLabel('匹配阈值:'))
-        self.threshold = QDoubleSpinBox()
-        self.threshold.setRange(0.1, 1.0)
-        self.threshold.setSingleStep(0.1)
-        self.threshold.setValue(0.8)
-        self.threshold.setSuffix(" (0.1-1.0)")
-        threshold_layout.addWidget(self.threshold)
-        self.layout.addLayout(threshold_layout)
-        
-    def add_preview_area(self):
-        """添加预览区域"""
-        self.preview_label = QLabel()
-        self.preview_label.setMinimumSize(200, 200)
-        self.preview_label.setAlignment(Qt.AlignCenter)
-        self.preview_label.setStyleSheet("border: 1px solid #ccc;")
-        self.layout.addWidget(self.preview_label)
-        
-        if hasattr(self, 'template_path'):
-            self.template_path.textChanged.connect(self.update_preview)
+    def save_template(self):
+        """保存当前动作为模板"""
+        name, ok = QInputDialog.getText(self, '保存模板', '请输入模板名称:')
+        if ok and name:
+            actions = self.get_actions_from_editor()
+            template = ActionTemplate(name, actions)
+            self.template_manager.save_template(template)
             
-    def add_action_buttons(self):
-        """添加确定/取消按钮"""
-        button_layout = QHBoxLayout()
-        ok_btn = QPushButton('确定')
-        ok_btn.clicked.connect(self.accept)
-        button_layout.addWidget(ok_btn)
-        cancel_btn = QPushButton('取消')
-        cancel_btn.clicked.connect(self.reject)
-        button_layout.addWidget(cancel_btn)
-        self.layout.addLayout(button_layout)
-        
-    def update_preview(self):
-        """更新预览图像"""
-        if not self.preview_label or not hasattr(self, 'template_path'):
+    def load_template(self):
+        """加载模板"""
+        templates = self.template_manager.list_templates()
+        if not templates:
+            QMessageBox.information(self, '提示', '没有可用的模板')
             return
             
-        path = self.template_path.text()
-        if path and os.path.exists(path):
-            pixmap = QPixmap(path)
-            scaled_pixmap = pixmap.scaled(200, 200, Qt.KeepAspectRatio)
-            self.preview_label.setPixmap(scaled_pixmap)
-        else:
-            self.preview_label.clear()
-            
-    def browse_template(self):
-        """浏览选择模板文件"""
-        file_path, _ = QFileDialog.getOpenFileName(self, '选择模板文件', '', 'Image Files (*.png *.jpg *.bmp)')
-        if file_path and hasattr(self, 'template_path'):
-            self.template_path.setText(file_path)
-            
-    def get_common_params(self):
-        """获取公共参数"""
-        params = {}
-        if hasattr(self, 'template_path'):
-            params['template_path'] = self.template_path.text()
-        if hasattr(self, 'threshold'):
-            params['threshold'] = self.threshold.value()
-        return params
+        template, ok = QInputDialog.getItem(self, '加载模板', '选择模板:', templates, 0, False)
+        if ok and template:
+            action_template = self.template_manager.load_template(template)
+            if action_template:
+                self.load_actions_to_editor(action_template.actions)
+                
+    def show_template_manager(self):
+        """显示模板管理窗口"""
+        dialog = TemplateManagerDialog(self.template_manager, self)
+        dialog.exec_()
+        
+    def get_actions_from_editor(self) -> List[Action]:
+        """从编辑器获取动作列表"""
+        actions = []
+        for item in self.action_editor.scene.items():
+            if isinstance(item, ActionNode):
+                action = Action(item.action_type, item.params)
+                actions.append(action)
+        return actions
+        
+    def load_actions_to_editor(self, actions: List[Action]):
+        """将动作加载到编辑器"""
+        self.action_editor.scene.clear()
+        for action in actions:
+            node = ActionNode(action.type, action.params)
+            self.action_editor.scene.addItem(node)
 class ClickActionDialog(BaseActionDialog):
     def __init__(self, parent=None):
         super().__init__('添加点击动作', '点击动作将在屏幕上查找指定图像并点击匹配位置', parent)
