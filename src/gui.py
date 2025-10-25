@@ -350,12 +350,19 @@ class AutomationWindow(QMainWindow):
             btn = QPushButton(text)
             btn.setMaximumHeight(32)  # 限制按钮高度
             btn.clicked.connect(handler)
+            
+            # 保存按钮类型
+            btn.setProperty("style_type", style_type)
+            
             if style_type == 'primary':
                 btn.setStyleSheet(f"""
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['primary']};
                         color: {ThemeManager.LIGHT_THEME['on_primary']};
                         padding: 4px 12px;
+                    }}
+                    QPushButton:hover {{
+                        background-color: {ThemeManager.LIGHT_THEME['primary_variant']};
                     }}
                 """)
             elif style_type == 'error':
@@ -365,6 +372,10 @@ class AutomationWindow(QMainWindow):
                         color: white;
                         padding: 4px 12px;
                     }}
+                    QPushButton:hover {{
+                        background-color: {ThemeManager.LIGHT_THEME['error']};
+                        opacity: 0.8;
+                    }}
                 """)
             elif style_type == 'warning':
                 btn.setStyleSheet(f"""
@@ -372,6 +383,10 @@ class AutomationWindow(QMainWindow):
                         background-color: {ThemeManager.LIGHT_THEME['warning']};
                         color: white;
                         padding: 4px 12px;
+                    }}
+                    QPushButton:hover {{
+                        background-color: {ThemeManager.LIGHT_THEME['warning']};
+                        opacity: 0.8;
                     }}
                 """)
             elif style_type == 'success':
@@ -381,10 +396,12 @@ class AutomationWindow(QMainWindow):
                         color: white;
                         padding: 4px 12px;
                     }}
+                    QPushButton:hover {{
+                        background-color: {ThemeManager.LIGHT_THEME['success']};
+                        opacity: 0.8;
+                    }}
                 """)
             control_layout.addWidget(btn)
-            
-        control_container.setLayout(control_layout)
         layout.addWidget(control_container)
         
         # 添加流程图显示区域
@@ -646,10 +663,6 @@ class AutomationWindow(QMainWindow):
         
     def animate_button(self, button, enter):
         """按钮动画效果"""
-        # 创建颜色动画
-        color_animation = QPropertyAnimation(button, b"color")
-        color_animation.setDuration(200)
-        
         # 创建几何动画
         geo_animation = QPropertyAnimation(button, b"geometry")
         geo_animation.setDuration(200)
@@ -659,25 +672,14 @@ class AutomationWindow(QMainWindow):
             cur_geo = button.geometry()
             geo_animation.setStartValue(cur_geo)
             geo_animation.setEndValue(cur_geo.adjusted(-2, -2, 2, 2))
-            
-            # 改变按钮颜色
-            if button.styleSheet().contains('primary'):
-                color_animation.setStartValue(ThemeManager.LIGHT_THEME['primary'])
-                color_animation.setEndValue(ThemeManager.LIGHT_THEME['primary_variant'])
         else:
             # 鼠标离开时的动画
             cur_geo = button.geometry()
             geo_animation.setStartValue(cur_geo)
             geo_animation.setEndValue(cur_geo.adjusted(2, 2, -2, -2))
-            
-            # 恢复按钮颜色
-            if button.styleSheet().contains('primary_variant'):
-                color_animation.setStartValue(ThemeManager.LIGHT_THEME['primary_variant'])
-                color_animation.setEndValue(ThemeManager.LIGHT_THEME['primary'])
         
         # 启动动画
         geo_animation.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
-        color_animation.start(QAbstractAnimation.DeletionPolicy.DeleteWhenStopped)
 class BaseActionDialog(QDialog):
     """动作对话框基类"""
     def __init__(self, title: str, description: str, parent=None):
