@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon, QMovie
 from gui import AutomationWindow, SplashScreen
-
+progress = 0
 def set_dpi_awareness():
     """设置Windows DPI感知"""
     try:
@@ -45,11 +45,10 @@ if __name__ == '__main__':
         splash.show()
         
         # 模拟加载过程
-        progress = 0
         timer = QTimer()
         
         def update_progress():
-            nonlocal progress
+            global progress  # 使用 global 替代 nonlocal
             progress += 20
             splash.set_progress(progress)
             if progress >= 100:
