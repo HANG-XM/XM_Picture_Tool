@@ -13,13 +13,13 @@ class SplashScreen(QSplashScreen):
     """启动画面"""
     def __init__(self):
         # 创建启动画面
-        super().__init__()
+        super().__init__(QPixmap())
         
         # 设置启动画面大小
         self.setFixedSize(400, 300)
         
         # 创建加载动画
-        self.movie = QMovie("loading.gif")  # 需要添加一个loading.gif文件
+        self.movie = QMovie("loading.gif")
         self.movie.frameChanged.connect(self.handle_frame)
         self.movie.start()
         
@@ -616,6 +616,10 @@ class AutomationWindow(QMainWindow):
         self.automation_thread = None
         self.is_dark_mode = False
         self.template_manager = TemplateManager()
+        
+        # 设置窗口标志
+        self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint)
+        
         self.init_ui()
         self.setup_status_bar()
         self.add_animation_effects()

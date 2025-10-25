@@ -53,11 +53,12 @@ if __name__ == '__main__':
             splash.set_progress(progress)
             if progress >= 100:
                 timer.stop()
-                # 创建并显示主窗口
+                # 创建主窗口
                 window = AutomationWindow()
+                # 显示主窗口
                 window.show()
-                # 延迟100ms后关闭启动画面，确保主窗口完全显示
-                QTimer.singleShot(100, lambda: splash.finish(window))
+                # 延迟关闭启动画面
+                QTimer.singleShot(100, splash.close)
         
         # 每500毫秒更新一次进度
         timer.timeout.connect(update_progress)
