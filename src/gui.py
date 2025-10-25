@@ -901,52 +901,42 @@ class AutomationWindow(QMainWindow):
         dialog = ClickActionDialog()
         if dialog.exec_():
             action = Action(ActionType.CLICK, dialog.get_params())
-            self.action_editor.add_action(action)
+            return self.action_editor.add_action(action)
 
     def add_find_action(self):
         """添加查找动作"""
         dialog = FindActionDialog()
         if dialog.exec_():
             action = Action(ActionType.FIND, dialog.get_params())
-            self.actions.append(action)
-            self.update_action_list()
-            self.update_flowchart()
+            return self.action_editor.add_action(action)
 
     def add_wait_action(self):
         """添加等待动作"""
         dialog = WaitActionDialog()
         if dialog.exec_():
             action = Action(ActionType.WAIT, dialog.get_params())
-            self.actions.append(action)
-            self.update_action_list()
-            self.update_flowchart()
+            return self.action_editor.add_action(action)
 
     def add_loop_action(self):
         """添加循环动作"""
         dialog = LoopActionDialog()
         if dialog.exec_():
             action = Action(ActionType.LOOP, dialog.get_params())
-            self.actions.append(action)
-            self.update_action_list()
-            self.update_flowchart()
+            return self.action_editor.add_action(action)
 
     def add_condition_action(self):
         """添加条件动作"""
         dialog = ConditionActionDialog()
         if dialog.exec_():
             action = Action(ActionType.CONDITION, dialog.get_params())
-            self.actions.append(action)
-            self.update_action_list()
-            self.update_flowchart()
+            return self.action_editor.add_action(action)
 
     def add_batch_click_action(self):
         """添加批量点击动作"""
         dialog = BatchClickActionDialog()
         if dialog.exec_():
             action = Action(ActionType.BATCH_CLICK, dialog.get_params())
-            self.actions.append(action)
-            self.update_action_list()
-            self.update_flowchart()
+            return self.action_editor.add_action(action)
     def start_automation(self):
         """开始执行自动化流程"""
         if not self.actions:
