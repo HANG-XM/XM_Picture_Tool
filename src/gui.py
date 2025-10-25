@@ -299,6 +299,7 @@ class AutomationWindow(QMainWindow):
             action = Action(ActionType.CLICK, dialog.get_params())
             self.actions.append(action)
             self.action_list.addItem(f"点击: {dialog.template_path.text()}")
+            self.update_flowchart()
             
     def add_find_action(self):
         """添加查找动作"""
@@ -307,6 +308,7 @@ class AutomationWindow(QMainWindow):
             action = Action(ActionType.FIND, dialog.get_params())
             self.actions.append(action)
             self.action_list.addItem(f"查找: {dialog.template_path.text()}")
+            self.update_flowchart()
             
     def add_wait_action(self):
         """添加等待动作"""
@@ -315,6 +317,7 @@ class AutomationWindow(QMainWindow):
             action = Action(ActionType.WAIT, dialog.get_params())
             self.actions.append(action)
             self.action_list.addItem(f"等待: {dialog.duration.value()} 秒")
+            self.update_flowchart()
             
     def add_loop_action(self):
         """添加循环动作"""
@@ -323,6 +326,7 @@ class AutomationWindow(QMainWindow):
             action = Action(ActionType.LOOP, dialog.get_params())
             self.actions.append(action)
             self.action_list.addItem(f"循环: {dialog.count.value()} 次")
+            self.update_flowchart()
             
     def add_condition_action(self):
         """添加条件动作"""
@@ -331,6 +335,7 @@ class AutomationWindow(QMainWindow):
             action = Action(ActionType.CONDITION, dialog.get_params())
             self.actions.append(action)
             self.action_list.addItem(f"条件: {dialog.template_path.text()}")
+            self.update_flowchart()
             
     def start_automation(self):
         """开始执行自动化流程"""
