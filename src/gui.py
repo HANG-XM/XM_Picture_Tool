@@ -18,17 +18,82 @@ class SplashScreen(QSplashScreen):
         # 设置启动画面大小
         self.setFixedSize(400, 300)
         
+        # 创建主布局
+        layout = QVBoxLayout()
+        layout.setSpacing(20)
+        layout.setContentsMargins(40, 40, 40, 40)
+        
+        # 添加应用标题
+        title_label = QLabel("自动化工具")
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet("""
+            QLabel {
+                color: #1976d2;
+                font-size: 24px;
+                font-weight: bold;
+                margin: 20px 0;
+            }
+        """)
+        layout.addWidget(title_label)
+        
+        # 创建加载动画容器
+        animation_container = QWidget()
+        animation_layout = QVBoxLayout()
+        
         # 创建加载动画
         self.movie = QMovie("loading.gif")
-        self.movie.frameChanged.connect(self.handle_frame)
+        self.movie_label = QLabel()
+        self.movie_label.setAlignment(Qt.AlignCenter)
+        self.movie_label.setMovie(self.movie)
         self.movie.start()
+        animation_layout.addWidget(self.movie_label)
+        
+        # 添加加载文字
+        self.loading_label = QLabel("正在加载...")
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        self.loading_label.setStyleSheet("""
+            QLabel {
+                color: #666;
+                font-size: 14px;
+                margin: 10px 0;
+            }
+        """)
+        animation_layout.addWidget(self.loading_label)
+        
+        animation_container.setLayout(animation_layout)
+        layout.addWidget(animation_container)
+        
+        # 创建进度条容器
+        progress_container = QWidget()
+        progress_layout = QVBoxLayout()
         
         # 创建进度条
-        self.progress_bar = QProgressBar(self)
-        self.progress_bar.setGeometry(50, 250, 300, 20)
-        self.progress_bar.setTextVisible(False)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setFormat("%p%")
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(0)
+        progress_layout.addWidget(self.progress_bar)
+        
+        # 添加版本信息
+        version_label = QLabel("v1.0.0")
+        version_label.setAlignment(Qt.AlignCenter)
+        version_label.setStyleSheet("""
+            QLabel {
+                color: #999;
+                font-size: 12px;
+                margin-top: 10px;
+            }
+        """)
+        progress_layout.addWidget(version_label)
+        
+        progress_container.setLayout(progress_layout)
+        layout.addWidget(progress_container)
+        
+        # 设置主布局
+        main_widget = QWidget()
+        main_widget.setLayout(layout)
+        self.setLayout(layout)
         
         # 设置样式
         self.setStyleSheet("""
@@ -40,6 +105,7 @@ class SplashScreen(QSplashScreen):
                 border: none;
                 background-color: #e0e0e0;
                 border-radius: 10px;
+                height: 6px;
             }
             QProgressBar::chunk {
                 background-color: #1976d2;
@@ -56,6 +122,15 @@ class SplashScreen(QSplashScreen):
     def set_progress(self, value):
         """设置进度"""
         self.progress_bar.setValue(value)
+        # 更新加载文字
+        if value < 30:
+            self.loading_label.setText("正在初始化...")
+        elif value < 60:
+            self.loading_label.setText("正在加载组件...")
+        elif value < 90:
+            self.loading_label.setText("正在准备界面...")
+        else:
+            self.loading_label.setText("即将完成...")
 class ThemeManager:
     LIGHT_THEME = {
         'bg': '#fafafa',
