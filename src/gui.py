@@ -595,10 +595,12 @@ class AutomationWindow(QMainWindow):
             item = QListWidgetItem()
             widget = QWidget()
             layout = QHBoxLayout()
+            layout.setContentsMargins(5, 8, 5, 8)  # 增加上下边距
+            layout.setSpacing(10)  # 增加元素间距
             
             # 添加序号
             num_label = QLabel(f"{i+1}.")
-            num_label.setStyleSheet("font-weight: bold; color: #2196f3;")
+            num_label.setStyleSheet("font-weight: bold; color: #2196f3; min-width: 30px;")
             layout.addWidget(num_label)
             
             # 添加动作类型图标
@@ -611,6 +613,7 @@ class AutomationWindow(QMainWindow):
                 ActionType.CONDITION: "❓"
             }
             icon_label.setText(icons.get(action.type, "📌"))
+            icon_label.setStyleSheet("min-width: 20px;")
             layout.addWidget(icon_label)
             
             # 添加动作描述
@@ -625,18 +628,23 @@ class AutomationWindow(QMainWindow):
                 desc_label.setText(f"循环: {action.params['count']} 次")
             elif action.type == ActionType.CONDITION:
                 desc_label.setText(f"条件: {os.path.basename(action.params['template_path'])}")
+            desc_label.setStyleSheet("padding: 0 10px;")
             layout.addWidget(desc_label)
+            
+            # 添加弹性空间
+            layout.addStretch()
             
             # 添加删除按钮
             delete_btn = QPushButton("×")
-            delete_btn.setFixedSize(24, 24)
+            delete_btn.setFixedSize(28, 28)  # 增大按钮尺寸
             delete_btn.setStyleSheet("""
                 QPushButton {
                     background: #ff4444;
                     color: white;
                     border: none;
-                    border-radius: 12px;
+                    border-radius: 14px;
                     font-weight: bold;
+                    font-size: 18px;
                 }
                 QPushButton:hover {
                     background: #cc0000;
@@ -646,10 +654,11 @@ class AutomationWindow(QMainWindow):
             layout.addWidget(delete_btn)
             
             widget.setLayout(layout)
-            item.setSizeHint(widget.sizeHint())
+            item.setSizeHint(QSize(item.sizeHint().width(), 40))  # 设置最小高度
             self.action_list.addItem(item)
             self.action_list.setItemWidget(item, widget)
-        self.update_flowchart()   
+        self.update_flowchart()
+
     def remove_action(self, index):
         """删除指定索引的动作"""
         if 0 <= index < len(self.actions):
