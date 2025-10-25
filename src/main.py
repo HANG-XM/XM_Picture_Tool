@@ -3,13 +3,14 @@ import sys
 from ctypes import windll
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from gui import AutomationWindow
 
 def set_dpi_awareness():
     """设置Windows DPI感知"""
     try:
         # Windows 10及之后版本
-        windll.shcore.SetProcessDpiAwarenessContext(-2)  # DPI_AWARENESS_CONTEXT_UNAWARE
+        windll.shcore.SetProcessDpiAwarenessContext(-2)  # DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
     except:
         try:
             # Windows 8.1及之后版本
@@ -33,6 +34,12 @@ if __name__ == '__main__':
     try:
         enable_high_dpi_support()
         app = QApplication(sys.argv)
+        app.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # 启用高DPI缩放
+        app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)  # 使用高DPI图标
+        
+        # 设置应用程序图标
+        app.setWindowIcon(QIcon('icon.ico'))
+        
         window = AutomationWindow()
         window.show()
         sys.exit(app.exec())
