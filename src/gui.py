@@ -284,20 +284,20 @@ class AutomationWindow(QMainWindow):
         self.setStyleSheet(ThemeManager.get_stylesheet(ThemeManager.LIGHT_THEME))
         
         self.setWindowTitle('可视化自动化工具')
-        self.setGeometry(100, 100, 1000, 700)  # 增加默认窗口大小
+        self.setGeometry(100, 100, 900, 600)  # 调整默认窗口大小为更合理的尺寸
         
         # 创建中心部件和布局
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout()
-        layout.setSpacing(16)  # 增加间距
-        layout.setContentsMargins(20, 20, 20, 20)  # 增加边距
+        layout.setSpacing(12)  # 减小间距
+        layout.setContentsMargins(16, 16, 16, 16)  # 减小边距
         central_widget.setLayout(layout)
         
         # 创建工具栏
         toolbar = QToolBar()
-        toolbar.setMovable(False)  # 固定工具栏
-        toolbar.setIconSize(QSize(24, 24))  # 统一图标大小
+        toolbar.setMovable(False)
+        toolbar.setIconSize(QSize(20, 20))  # 减小图标尺寸
         self.addToolBar(toolbar)
         
         # 添加动作按钮
@@ -320,15 +320,16 @@ class AutomationWindow(QMainWindow):
         
         # 创建动作列表区域
         list_container = QWidget()
+        list_container.setMaximumHeight(180)  # 限制最大高度
         list_layout = QVBoxLayout()
-        list_layout.setSpacing(8)
+        list_layout.setSpacing(6)
         
         list_header = QLabel('动作列表')
-        list_header.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 4px;")
+        list_header.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 2px;")
         list_layout.addWidget(list_header)
         
         self.action_list = QListWidget()
-        self.action_list.setMinimumHeight(200)
+        self.action_list.setMaximumHeight(150)  # 限制列表高度
         list_layout.addWidget(self.action_list)
         
         list_container.setLayout(list_layout)
@@ -336,8 +337,9 @@ class AutomationWindow(QMainWindow):
         
         # 创建控制按钮区域
         control_container = QWidget()
+        control_container.setMaximumHeight(40)  # 限制最大高度
         control_layout = QHBoxLayout()
-        control_layout.setSpacing(12)
+        control_layout.setSpacing(8)
         
         buttons = [
             ('开始执行', self.start_automation, 'primary'),
@@ -349,12 +351,14 @@ class AutomationWindow(QMainWindow):
         
         for text, handler, style_type in buttons:
             btn = QPushButton(text)
+            btn.setMaximumHeight(32)  # 限制按钮高度
             btn.clicked.connect(handler)
             if style_type == 'primary':
                 btn.setStyleSheet(f"""
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['primary']};
                         color: {ThemeManager.LIGHT_THEME['on_primary']};
+                        padding: 4px 12px;
                     }}
                 """)
             elif style_type == 'error':
@@ -362,6 +366,7 @@ class AutomationWindow(QMainWindow):
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['error']};
                         color: white;
+                        padding: 4px 12px;
                     }}
                 """)
             elif style_type == 'warning':
@@ -369,6 +374,7 @@ class AutomationWindow(QMainWindow):
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['warning']};
                         color: white;
+                        padding: 4px 12px;
                     }}
                 """)
             elif style_type == 'success':
@@ -376,6 +382,7 @@ class AutomationWindow(QMainWindow):
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['success']};
                         color: white;
+                        padding: 4px 12px;
                     }}
                 """)
             control_layout.addWidget(btn)
@@ -385,15 +392,16 @@ class AutomationWindow(QMainWindow):
         
         # 添加流程图显示区域
         flowchart_container = QWidget()
+        flowchart_container.setMaximumHeight(180)  # 限制最大高度
         flowchart_layout = QVBoxLayout()
-        flowchart_layout.setSpacing(8)
+        flowchart_layout.setSpacing(6)
         
         flowchart_header = QLabel('流程图')
-        flowchart_header.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 4px;")
+        flowchart_header.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 2px;")
         flowchart_layout.addWidget(flowchart_header)
         
         self.flowchart_view = QWebEngineView()
-        self.flowchart_view.setMinimumHeight(200)
+        self.flowchart_view.setMaximumHeight(150)  # 限制高度
         self.flowchart_view.setUrl(QUrl("about:blank"))
         self.flowchart_view.setVisible(True)
         flowchart_layout.addWidget(self.flowchart_view)
@@ -403,6 +411,7 @@ class AutomationWindow(QMainWindow):
         
         # 添加进度条
         self.progress_bar = QProgressBar()
+        self.progress_bar.setMaximumHeight(24)  # 限制进度条高度
         self.progress_bar.setVisible(False)
         self.progress_bar.setTextVisible(True)
         layout.addWidget(self.progress_bar)
@@ -410,15 +419,15 @@ class AutomationWindow(QMainWindow):
         # 创建日志输出区域
         log_container = QWidget()
         log_layout = QVBoxLayout()
-        log_layout.setSpacing(8)
+        log_layout.setSpacing(6)
         
         log_header = QLabel('执行日志')
-        log_header.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 4px;")
+        log_header.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 2px;")
         log_layout.addWidget(log_header)
         
         self.log_text = QTextEdit()
+        self.log_text.setMaximumHeight(120)  # 限制日志区域高度
         self.log_text.setReadOnly(True)
-        self.log_text.setMinimumHeight(150)
         log_layout.addWidget(self.log_text)
         
         log_container.setLayout(log_layout)
@@ -656,12 +665,15 @@ class BaseActionDialog(QDialog):
     def __init__(self, title: str, description: str, parent=None):
         super().__init__(parent)
         self.setWindowTitle(title)
+        self.setFixedSize(400, 300)  # 设置固定大小
         self.layout = QVBoxLayout()
+        self.layout.setSpacing(8)
+        self.layout.setContentsMargins(16, 16, 16, 16)
         
         # 添加说明
         info_label = QLabel(description)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        info_label.setStyleSheet("color: #666; margin-bottom: 8px;")
         self.layout.addWidget(info_label)
         
         # 添加预览区域（可选）
