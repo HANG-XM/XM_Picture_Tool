@@ -337,6 +337,9 @@ class AutomationWindow(QMainWindow):
         control_container.setMaximumHeight(40)  # 限制最大高度
         control_layout = QHBoxLayout()
         control_layout.setSpacing(8)
+        control_layout.setContentsMargins(0, 0, 0, 0)  # 移除边距
+        control_container.setLayout(control_layout)
+        layout.addWidget(control_container)
         
         buttons = [
             ('开始执行', self.start_automation, 'primary'),
@@ -354,14 +357,21 @@ class AutomationWindow(QMainWindow):
             # 保存按钮类型
             btn.setProperty("style_type", style_type)
             
+            # 设置按钮样式
             if style_type == 'primary':
                 btn.setStyleSheet(f"""
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['primary']};
                         color: {ThemeManager.LIGHT_THEME['on_primary']};
+                        border: none;
                         padding: 4px 12px;
+                        border-radius: 4px;
+                        font-weight: 500;
                     }}
                     QPushButton:hover {{
+                        background-color: {ThemeManager.LIGHT_THEME['primary_variant']};
+                    }}
+                    QPushButton:pressed {{
                         background-color: {ThemeManager.LIGHT_THEME['primary_variant']};
                     }}
                 """)
@@ -370,11 +380,18 @@ class AutomationWindow(QMainWindow):
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['error']};
                         color: white;
+                        border: none;
                         padding: 4px 12px;
+                        border-radius: 4px;
+                        font-weight: 500;
                     }}
                     QPushButton:hover {{
                         background-color: {ThemeManager.LIGHT_THEME['error']};
                         opacity: 0.8;
+                    }}
+                    QPushButton:pressed {{
+                        background-color: {ThemeManager.LIGHT_THEME['error']};
+                        opacity: 0.6;
                     }}
                 """)
             elif style_type == 'warning':
@@ -382,11 +399,18 @@ class AutomationWindow(QMainWindow):
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['warning']};
                         color: white;
+                        border: none;
                         padding: 4px 12px;
+                        border-radius: 4px;
+                        font-weight: 500;
                     }}
                     QPushButton:hover {{
                         background-color: {ThemeManager.LIGHT_THEME['warning']};
                         opacity: 0.8;
+                    }}
+                    QPushButton:pressed {{
+                        background-color: {ThemeManager.LIGHT_THEME['warning']};
+                        opacity: 0.6;
                     }}
                 """)
             elif style_type == 'success':
@@ -394,13 +418,23 @@ class AutomationWindow(QMainWindow):
                     QPushButton {{
                         background-color: {ThemeManager.LIGHT_THEME['success']};
                         color: white;
+                        border: none;
                         padding: 4px 12px;
+                        border-radius: 4px;
+                        font-weight: 500;
                     }}
                     QPushButton:hover {{
                         background-color: {ThemeManager.LIGHT_THEME['success']};
                         opacity: 0.8;
                     }}
+                    QPushButton:pressed {{
+                        background-color: {ThemeManager.LIGHT_THEME['success']};
+                        opacity: 0.6;
+                    }}
                 """)
+            
+            # 确保按钮可见
+            btn.show()
             control_layout.addWidget(btn)
         layout.addWidget(control_container)
         
